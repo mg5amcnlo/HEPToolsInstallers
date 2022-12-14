@@ -313,7 +313,18 @@ _HepTools = {'hepmc':
                 'optional_dependencies' : [],
                 'libraries' : [''],
                 'install_path':  '%(prefix)s/NkLO_tools/',
-                 }
+                 },
+             'emela':
+                {
+                'install_mode':'Default',
+                'version':       '1.0',
+                'www': 'https://github.com/gstagnit/eMELA/',
+                'tarball':      ['online','%(www)s/archive/refs/tags/v%(version)s.tar.gz'],
+                'mandatory_dependencies': ['lhapdf6','cmake'],
+                'optional_dependencies' : [],
+                'libraries' : [''],
+                'install_path':  '%(prefix)s/EMELA/',
+                }
             }
 
 # Set default for advanced options
@@ -763,6 +774,22 @@ def install_collier(tmp_path):
                     stdout=collier_log,
                     stderr=collier_log)
     collier_log.close()
+
+def install_emela(tmp_path):
+    """Installation operat ons for COLLIER"""
+    log = open(pjoin(_HepTools['emela']['install_path'],"emela_install.log"), "w")
+    my_env = os.environ.copy()
+    subprocess.call([pjoin(_installers_path,'installEMELA.sh'),
+                      _HepTools['emela']['install_path'],
+                     _HepTools['emela']['version'],
+                     _HepTools['emela']['tarball'][1],
+                     _HepTools['cmake']['install_path'],
+                     _HepTools['lhapdf6']['install_path'],
+                     ],
+                    stdout=log,
+                    stderr=log,
+                    env=my_env)
+    log.close()
 
 def install_ninja(tmp_path):
     """Installation operations for Ninja"""
