@@ -14,7 +14,7 @@ run () {
     mkdir -p $INSTALLD
     cd $INSTALLD
     # Make sure there is only a single uncompressed folder starting with EMELA-
-    for a in eMELA-*; do mv $a OLD_$a; done;
+    for a in `ls -d eMELA-*`; do mv $a OLD_${a}_`date '+%Y%m%d%H%M%S'`; done;
     echo "Decompressing EMELA"
     tar xvzf ${TARBALLPATH}
     echo "Enter EMELA directory and installing EMELA"
