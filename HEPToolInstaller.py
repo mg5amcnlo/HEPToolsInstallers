@@ -247,16 +247,16 @@ _HepTools = {'hepmc':
                 'install_path':  '%(prefix)s/collier/'},
                'madanalysis5':
                {'install_mode':'Default',
-                'version':       '1.10.9',
+                'version':       '1.10.9_beta',
 #               WARNING USING BETA VERSION OF 1.10.9                
                 'www': 'http://madanalysis.irmp.ucl.ac.be/raw-attachment/wiki/MA5SandBox',
-                'tarball':      ['online','https://github.com/MadAnalysis/madanalysis5/archive/refs/tags/v%(version)s_beta.tar.gz'],
+                'tarball':      ['online','https://github.com/MadAnalysis/madanalysis5/archive/refs/tags/v%(version)s.tar.gz'],
                 # Specify a different tarball for MG version before 2.6.1
                 'MG5_version_constraints' : [
                     ( lambda MG5version: MG5version < LooseVersion("2.6.1"),
                        ['online','%(www)s/ma5_v_1_6_21.tgz'] ),
                     ( lambda MG5version: PY3,
-                       ['online','https://github.com/MadAnalysis/madanalysis5/archive/refs/tags/v%(version)s_beta.tar.gz']),
+                       ['online','https://github.com/MadAnalysis/madanalysis5/archive/refs/tags/v%(version)s.tar.gz']),
                         #https://bazaar.launchpad.net/~ma5dev/madanalysis5/v1.9_beta/tarball'] ),
                 ],
                 'mandatory_dependencies': ['zlib'],
