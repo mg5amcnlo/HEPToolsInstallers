@@ -162,7 +162,7 @@ _HepTools = {'hepmc':
                 'install_path':  '%(prefix)s/pythia8/'},
              'lhapdf6':
                {'install_mode':'Default',
-                'version':       '6.3.0',
+                'version':       '6.5.2',
                 'www': 'https://lhapdf.hepforge.org/downloads',#?f=LHAPDF-6.1.6.tar.gz',
                 'tarball':      ['online','%(www)s/LHAPDF-%(version)s.tar.gz'],
                 'mandatory_dependencies': [],
