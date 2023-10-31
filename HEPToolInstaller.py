@@ -1485,6 +1485,11 @@ def check_successful_installation(target):
                 return True
         if os.path.exists(pjoin(_HepTools[target]['install_path'],f)):
             return True
+    if target == 'emela':
+       if os.path.exists(pjoin(_HepTools[target]['install_path'], 'bin', 'emela-config')):
+            return True
+       else:
+          print(pjoin(_HepTools[target]['install_path'], 'bin', 'emela-config'))
     return False
 
 def install_with_dependencies(target,is_main_target=False):
