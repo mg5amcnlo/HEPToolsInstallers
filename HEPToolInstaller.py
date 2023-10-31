@@ -1450,7 +1450,7 @@ def find_lhapdf_dependency(tool):
 
     # All cases should be covered at this point
     logger.warning("Inconsistent LHPADF setup, the installer should have never reached this point.")
-    sys.exit(9)
+    sys.exit(11)
 
 def check_successful_installation(target):
     """ Check whether the installation of target was successful or not. """
