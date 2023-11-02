@@ -26,6 +26,18 @@ run () {
     make && make install
     cd ..
     echo "Finished installing EMELA"
+    echo "install grid"
+    cd $INSTALLD
+    mkdir share
+    mkdir share/eMELA/
+    if ! command -v curl &> /dev/null
+    then
+    wget https://github.com/gstagnit/eMELA/releases/download/v1.0/grids.tar.gz -O grids.tar.gz
+    else
+    curl -OL https://github.com/gstagnit/eMELA/releases/download/v1.0/grids.tar.gz	
+    fi
+    tar -xzpvf grids.tar.gz
+    mv grids/* share/eMELA/    
 }
 
 run "$@"
