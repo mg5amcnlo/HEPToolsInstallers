@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+r! /usr/bin/env python
 
 __author__ = 'Valentin Hirschi'
 __email__  = "valentin.hirschi[at]gmail[dot]com"
@@ -88,7 +88,7 @@ _HepTools = {'hepmc':
                 'include_path' : [],
                 'install_path':  '%(prefix)s/fastjet/'},
              'rivet':{'install_mode':'Default',
-                'version':       '3.1.4',
+                'version':       '3.1.8',
                 'www': 'https://rivet.hepforge.org/',
                 'tarball':      ['online', '%(www)s/downloads/Rivet-%(version)s.tar.gz'],
                 'mandatory_dependencies': ['hepmc', 'yoda', 'fastjet','fjcontrib'],
