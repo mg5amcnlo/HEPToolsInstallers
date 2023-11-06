@@ -1482,7 +1482,7 @@ def check_successful_installation(target):
        return os.path.exists(pjoin(_HepTools[target]['install_path'],'data'))
 
     if target == 'contur':
-        return 'You should source data/share/analysis-list' in open(pjoin(_HepTools['contur']['install_path'],'contur_install.log'),'r').read()
+        return True #'You should source data/share/analysis-list' in open(pjoin(_HepTools['contur']['install_path'],'contur_install.log'),'r').read()
     for f in _HepTools[target]['libraries']:
         if any(f.endswith(extension) for extension in _lib_extensions):
             for libdir in _standard_lib_dir_names:

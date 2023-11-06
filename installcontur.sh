@@ -46,36 +46,38 @@ run () {
 
   echo " Check python dependency and install locally the missing one"
   
-  for module in tqdm numpy scipy configobj matplotlib pyslha pandas
+  for module in tqdm numpy scipy configobj matplotlib pyslha pandas contur
   do
       echo "module= $module"
-      python -c "import $module"
-      if [ "$?"  -eq "1" ]
-      then
-         pip install $module  --target=$LOCAL/python$PYVAR
+      if  `python -c "import $module"`; then
+          echo "working"
+      else
+         echo "use pip to install: pip install $module  --target=$LOCAL/python$PYVAR"
+         pip install $module  --target=$LOCAL/python$PYVAR --upgrade
+
       fi
   done
   
-  echo " Compile CONTUR $PYVAR"
-  export PATH=$PATH:$YODAPATH/bin;
-  export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$YODAPATH/lib:$YODAPATH/lib64
-  export PYTHONPATH=$PYTHONPATH:$YODAPATH/lib/python$PYVAR/site-packages
-  export PYTHONPATH=$PYTHONPATH:$YODAPATH/lib64/python$PYVAR/site-packages
-
-  export PATH=$PATH:$RIVETPATH/bin;
-  export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$LD_LIBRARY_PATH:$RIVETPATH/lib:$RIVETPATH/lib64
-  export PYTHONPATH=$PYTHONPATH:$RIVETPATH/lib/python$PYVAR/site-packages
-  export PYTHONPATH=$PYTHONPATH:$RIVETPATH/lib64/python$PYVAR/site-packages
-
-  source setupContur.sh
-  export PATH=$LOCAL/bin:$PATH
-  
-  YODAPATH=$YODAPATH HEPMCPATH=$HEPMCPATH RIVETPATH=$RIVETPATH LIBRARY_PATH=$LD_LIBRARY_PATH PATH=$PATH  make
-
-  
-  echo " Install CONTUR"
-  bash setupContur.sh
-  #LIBRARY_PATH=$LD_LIBRARY_PATH make install
+#  echo " Compile CONTUR $PYVAR"
+#  export PATH=$PATH:$YODAPATH/bin;
+#  export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$YODAPATH/lib:$YODAPATH/lib64
+#  export PYTHONPATH=$PYTHONPATH:$YODAPATH/lib/python$PYVAR/site-packages
+#  export PYTHONPATH=$PYTHONPATH:$YODAPATH/lib64/python$PYVAR/site-packages
+#
+#  export PATH=$PATH:$RIVETPATH/bin;
+#  export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$LD_LIBRARY_PATH:$RIVETPATH/lib:$RIVETPATH/lib64
+#  export PYTHONPATH=$PYTHONPATH:$RIVETPATH/lib/python$PYVAR/site-packages
+#  export PYTHONPATH=$PYTHONPATH:$RIVETPATH/lib64/python$PYVAR/site-packages
+#
+#  source setupContur.sh
+#  export PATH=$LOCAL/bin:$PATH
+#  
+#  YODAPATH=$YODAPATH HEPMCPATH=$HEPMCPATH RIVETPATH=$RIVETPATH LIBRARY_PATH=$LD_LIBRARY_PATH PATH=$PATH  make
+#
+#  
+#  echo " Install CONTUR"
+#  bash setupContur.sh
+#  #LIBRARY_PATH=$LD_LIBRARY_PATH make install
 
   echo " Finished CONTUR installation"
   cd $workd
