@@ -1,4 +1,4 @@
-r! /usr/bin/env python
+#! /usr/bin/env python
 
 __author__ = 'Valentin Hirschi'
 __email__  = "valentin.hirschi[at]gmail[dot]com"
