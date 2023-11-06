@@ -55,10 +55,16 @@ _HepTools = {'hepmc':
                 'include_path' : ['/opt/local/include', '/usr/local/include', '/opt/include', '/usr/include'], 
                 'install_path':  '%(prefix)s/boost/'},
              'yoda':{'install_mode':'Default',
-                'version':       '1.9.0',
+                'version':       '1.9.8',
                 'www': 'https://yoda.hepforge.org/',
                 'tarball':      ['online', '%(www)s/downloads/YODA-%(version)s.tar.gz'],
-                'mandatory_dependencies': [],
+               # Specify a different tarball for mac 
+                 'MG5_version_constraints' : [
+                     ( lambda MG5version: sys.platform == "darwin",
+                        ['online','%(www)s/downloads/YODA-1.9.0.tar.gz'] ),
+                         #https://bazaar.launchpad.net/~ma5dev/madanalysis5/v1.9_beta/tarball'] ),
+                 ],
+                     'mandatory_dependencies': [],
                 'optional_dependencies' : [],
                 'libraries' : ['libYODA.%(libextension)s'],
                 'include_path' : [],

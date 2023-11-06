@@ -29,7 +29,7 @@ run () {
 
 
   echo " Enter directory"
-  cd YODA-${VERSION}/
+  cd YODA-*/
 
   echo " Configure YODA"
   LIBRARY_PATH=$LD_LIBRARY_PATH ./configure CXXFLAGS="$CXXFLAGS" --prefix=$LOCAL --bindir=$LOCAL/bin --libdir=$LOCAL/lib --enable-static
