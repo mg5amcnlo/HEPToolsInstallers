@@ -169,9 +169,10 @@ _HepTools = {'hepmc':
                 'install_path':  '%(prefix)s/pythia8/'},
              'lhapdf6':
                {'install_mode':'Default',
-                'version':       '6.5.2',
+                'version':       '6.5.3',
                 'www': 'https://lhapdf.hepforge.org/downloads',#?f=LHAPDF-6.1.6.tar.gz',
-                'tarball':      ['online','%(www)s/LHAPDF-%(version)s.tar.gz'],
+                'tarball': ['online', 'https://madgraph.phys.ucl.ac.be/Downloads/LHAPDF-%(version)s.tar.gz'],
+                #['online','%(www)s/LHAPDF-%(version)s.tar.gz'],
                 'mandatory_dependencies': [],
                 'optional_dependencies' : [],
                 'libraries' : ['libLHAPDF.%(libextension)s'],
