@@ -12,7 +12,12 @@ import tempfile
 import glob
 import logging
 import re
-from distutils.version import LooseVersion, StrictVersion
+try:
+    from distutils.version import LooseVersion, StrictVersion
+except ModuleNotFoundError:
+    from packaging.version import parse, Version
+    LooseVersion = parse
+    StrictVersion = Version
 
 logger = logging
 pjoin = os.path.join
