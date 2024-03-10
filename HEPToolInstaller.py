@@ -93,7 +93,7 @@ _HepTools = {'hepmc':
                 'include_path' : [],
                 'install_path':  '%(prefix)s/fastjet/'},
              'rivet':{'install_mode':'Default',
-                'version':       '3.1.8',
+                'version':       '3.1.9',
                 'www': 'https://rivet.hepforge.org/',
                 'tarball':      ['online', '%(www)s/downloads/Rivet-%(version)s.tar.gz'],
                 'mandatory_dependencies': ['hepmc', 'yoda', 'fastjet','fjcontrib'],
@@ -883,6 +883,7 @@ def install_rivet(tmp_path):
        if test_cpp_compiler([flag]):
             cxx_flags = flag
     cxx_flags += ' -std=c++14 '
+    cxx_flags += ' -Wno-error '
     my_env = os.environ.copy()
     my_env["PYTHON"] = sys.executable
     subprocess.call([pjoin(_installers_path,'installRIVET.sh'),
