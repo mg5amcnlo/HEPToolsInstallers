@@ -32,7 +32,7 @@ run () {
   echo " Enter directory"
   cd Rivet-${VERSION}/
 
-  CXXFLAGS=-Wno-error:$CXXFLAGS
+  CXXFLAGS=-Wno-error
 
   echo " Configure RIVET"
   echo "LIBRARY_PATH=$LD_LIBRARY_PATH YODAPATH=$YODAPATH HEPMCPATH=$HEPMCPATH FASTJETPATH=$FASTJETPATH ./configure CXXFLAGS=$CXXFLAGS --prefix=$LOCAL --bindir=$LOCAL/bin --libdir=$LOCAL/lib --enable-static"
