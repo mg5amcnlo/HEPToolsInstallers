@@ -883,7 +883,6 @@ def install_rivet(tmp_path):
        if test_cpp_compiler([flag]):
             cxx_flags = flag
     cxx_flags += ' -std=c++14 '
-    cxx_flags += ' -Wno-error '
     my_env = os.environ.copy()
     my_env["PYTHON"] = sys.executable
     subprocess.call([pjoin(_installers_path,'installRIVET.sh'),
