@@ -104,7 +104,7 @@ _HepTools = {'hepmc':
                 'include_path' : [],
                 'install_path':  '%(prefix)s/fastjet/'},
              'rivet':{'install_mode':'Default',
-                'version':       '3.1.9',
+                'version':       '3.1.10',
                 'www': 'https://rivet.hepforge.org/',
                 'tarball':      ['online', '%(www)s/downloads/Rivet-%(version)s.tar.gz'],
                 'mandatory_dependencies': ['hepmc', 'yoda', 'fastjet','fjcontrib'],
