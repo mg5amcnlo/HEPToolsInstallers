@@ -550,7 +550,13 @@ if '__main__' == __name__:
                 _mg5_version = None
         elif option.startswith('--with_'):
             dependency_name = _dependency_names_map[option[7:]] if option[7:] in _dependency_names_map else option[7:]
+            
             value           = with_option_parser(value)
+            if value and not os.path.isdir(value):
+                value = os.path.dirname(value)
+            if value and os.path.basename(value) == "bin":
+                value = os.path.dirname(value)
+                
             if dependency_name in _HepTools:
                 _HepTools[dependency_name]['install_path'] = value
             else:
