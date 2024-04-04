@@ -26,10 +26,8 @@ run () {
 
   workd=$(pwd)
 
-  echo " Unpack rIVET"
+  echo " Unpack RIVET"
   tar xvzf $TARBALL
-
-
 
   echo " Enter directory"
   cd Rivet-${VERSION}/

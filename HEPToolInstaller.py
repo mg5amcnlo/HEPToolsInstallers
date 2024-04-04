@@ -48,6 +48,17 @@ _HepTools = {'hepmc':
                 'optional_dependencies' : [],
                 'libraries' : ['libHepMC.%(libextension)s'],
                 'install_path':  '%(prefix)s/hepmc/'},
+             'hepmc3':
+               {'install_mode':'Default',
+                # Force to install this dependency if not found locally
+                'allow_system_wide': False,
+                'version':       '3.2.6',
+                'www': 'http://hepmc.web.cern.ch/hepmc/releases',
+                'tarball':      ['online','%(www)s/HepMC3-%(version)s.tar.gz'],
+                'mandatory_dependencies': [],
+                'optional_dependencies' : [],
+                'libraries' : ['libHepMC3.%(libextension)s'],
+                'install_path':  '%(prefix)s/hepmc3/'},
              'boost':
                {'install_mode':'Default',
                 'version':       '1.74.0',
@@ -60,7 +71,7 @@ _HepTools = {'hepmc':
                 'include_path' : ['/opt/local/include', '/usr/local/include', '/opt/include', '/usr/include'], 
                 'install_path':  '%(prefix)s/boost/'},
              'yoda':{'install_mode':'Default',
-                'version':       '1.9.8',
+                'version':       '1.9.10',
                 'www': 'https://yoda.hepforge.org/',
                 'tarball':      ['online', '%(www)s/downloads/YODA-%(version)s.tar.gz'],
                # Specify a different tarball for mac 
@@ -93,7 +104,7 @@ _HepTools = {'hepmc':
                 'include_path' : [],
                 'install_path':  '%(prefix)s/fastjet/'},
              'rivet':{'install_mode':'Default',
-                'version':       '3.1.8',
+                'version':       '3.1.10',
                 'www': 'https://rivet.hepforge.org/',
                 'tarball':      ['online', '%(www)s/downloads/Rivet-%(version)s.tar.gz'],
                 'mandatory_dependencies': ['hepmc', 'yoda', 'fastjet','fjcontrib'],
@@ -539,7 +550,13 @@ if '__main__' == __name__:
                 _mg5_version = None
         elif option.startswith('--with_'):
             dependency_name = _dependency_names_map[option[7:]] if option[7:] in _dependency_names_map else option[7:]
+            
             value           = with_option_parser(value)
+            if value and not os.path.isdir(value):
+                value = os.path.dirname(value)
+            if value and os.path.basename(value) == "bin":
+                value = os.path.dirname(value)
+                
             if dependency_name in _HepTools:
                 _HepTools[dependency_name]['install_path'] = value
             else:
@@ -727,6 +744,17 @@ def install_hepmc(tmp_path):
                     stderr=hepmc_log)
     hepmc_log.close()
 
+def install_hepmc3(tmp_path):
+    """Installation operations for hepmc3"""
+    hepmc3_log = open(pjoin(_HepTools['hepmc3']['install_path'],"hepmc3_install.log"), "w")
+    subprocess.call([pjoin(_installers_path,'installHEPMC3.sh'),
+                     _HepTools['hepmc3']['install_path'],
+                     _HepTools['hepmc3']['version'],
+                     _HepTools['hepmc3']['tarball'][1]],
+                    stdout=hepmc3_log,
+                    stderr=hepmc3_log)
+    hepmc3_log.close()
+
 def install_boost(tmp_path):
     """Installation operations for boost"""
     boost_log = open(pjoin(_HepTools['boost']['install_path'],"boost_install.log"), "w")
@@ -878,7 +906,7 @@ def install_rivet(tmp_path):
     """Installation operations for lhapdf6"""
     
     log = open(pjoin(_HepTools['rivet']['install_path'],"rivet_install.log"), "w")
-    cxx_flags = '-O'
+    cxx_flags = ' ' #FIXME ' -O ' needs to be added back, see https://github.com/mg5amcnlo/HEPToolsInstallers/issues/3
     for flag in ['-static-libstdc++']:
        if test_cpp_compiler([flag]):
             cxx_flags = flag
