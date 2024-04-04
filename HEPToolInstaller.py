@@ -71,7 +71,7 @@ _HepTools = {'hepmc':
                 'include_path' : ['/opt/local/include', '/usr/local/include', '/opt/include', '/usr/include'], 
                 'install_path':  '%(prefix)s/boost/'},
              'yoda':{'install_mode':'Default',
-                'version':       '1.9.8',
+                'version':       '1.9.10',
                 'www': 'https://yoda.hepforge.org/',
                 'tarball':      ['online', '%(www)s/downloads/YODA-%(version)s.tar.gz'],
                # Specify a different tarball for mac 
