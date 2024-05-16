@@ -44,7 +44,7 @@ run () {
   cd LHAPDF-${VERSION}/
 
   if [[ $machine == "Mac" ]] ; then
-      sed -i.bckp 's/LINKFORSHARED/PY_CFLAGS/g' ./configure
+      sed -i.bckp 's/LINKFORSHARED/PY_LDFLAGS/g' ./configure
       diff configure.bckp configure
   fi
 
