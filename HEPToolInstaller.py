@@ -862,10 +862,10 @@ def install_lhapdf6(tmp_path):
     """Installation operations for lhapdf6"""
     
     lhapdf6_log = open(pjoin(_HepTools['lhapdf6']['install_path'],"lhapdf6_install.log"), "w")
-    cxx_flags = '-O'
-    for flag in ['-static-libstdc++']:
-       if test_cpp_compiler([flag]):
-            cxx_flags = flag
+    cxx_flags = '-O2'
+    #for flag in ['-static-libstdc++']:
+    #   if test_cpp_compiler([flag]):
+    #        cxx_flags = flag
     cxx_flags += ' -std=c++11 '
     my_env = os.environ.copy()
     my_env["PYTHON"] = sys.executable
