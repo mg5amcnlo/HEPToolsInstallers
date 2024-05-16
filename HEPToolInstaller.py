@@ -87,7 +87,7 @@ _HepTools = {'hepmc':
                 'install_path':  '%(prefix)s/yoda/'},
              'fastjet':{'install_mode':'Default',
                 'version':       '3.4.2',
-                'www': 'http://fastjet.fr/',
+                'www': 'https://fastjet.fr',
                 'tarball':      ['online', '%(www)s/repo/fastjet-%(version)s.tar.gz'],
                 'mandatory_dependencies': [],
                 'optional_dependencies' : [],
