@@ -42,7 +42,7 @@ _HepTools = {'hepmc':
                 # Force to install this dependency if not found locally
                 'allow_system_wide': False,
                 'version':       '2.06.09', #'2.07-beta00',
-                'www': 'http://hepmc.web.cern.ch/hepmc/releases',
+                'www':'http://madgraph.phys.ucl.ac.be/Downloads',
                 'tarball':      ['online','%(www)s/hepmc%(version)s.tgz'],
                 'mandatory_dependencies': [],
                 'optional_dependencies' : [],
