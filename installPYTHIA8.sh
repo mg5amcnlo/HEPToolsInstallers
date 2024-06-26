@@ -67,8 +67,8 @@ run () {
   sed -e s/"if \[ \"\$VAR\" = \"LDFLAGS\" ]\; then OUT+=\" -ld\""/"if \[ \"\$VAR\" = \"LDFLAGS\" ]\; then OUT+=\" -ldl\""/g pythia8-config> pythia8-config.tmp
   mv pythia8-config.tmp pythia8-config
   chmod ug+x pythia8-config
-  echo " Finished PYTHIA8 installation"
-  cd $workd
+  echo " Finished PYTHIA8 installation $workd"
+  cd $workd/pythia${version}/
   cp Makefile.inc $INSTALLPATH
 
 }
