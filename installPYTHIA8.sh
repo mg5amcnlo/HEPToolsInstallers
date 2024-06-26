@@ -69,6 +69,7 @@ run () {
   chmod ug+x pythia8-config
   echo " Finished PYTHIA8 installation"
   cd $workd
+  cp Makefile.inc $INSTALLPATH
 
 }
 
