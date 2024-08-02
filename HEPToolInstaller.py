@@ -1175,7 +1175,7 @@ def install_pythia8(tmp_path):
         except:
             pass
         pass
-    cxx_common = ['-ldl','-fPIC',_cpp_standard_lib, '-std=c++11', '-O2']
+    cxx_common = ['-ldl','-fPIC',_cpp_standard_lib, '-std=c++11', '-O2', '-pthread']
     if hepmc_named_weight_support:
         cxx_common.append('-DHEPMC2HACK')
         logger.debug("The version of HepMC supports the writing of named weights: %s ", _HepTools['hepmc']['install_path'])
