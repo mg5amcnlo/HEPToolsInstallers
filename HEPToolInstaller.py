@@ -725,46 +725,50 @@ int main()
 def install_zlib(tmp_path):
     """Installation operations for zlib"""
     zlib_log = open(pjoin(_HepTools['zlib']['install_path'],"zlib_install.log"), "w")
-    subprocess.call([pjoin(_installers_path,'installZLIB.sh'),
+    p = subprocess.call([pjoin(_installers_path,'installZLIB.sh'),
                      _HepTools['zlib']['install_path'],
                      _HepTools['zlib']['version'],
                      _HepTools['zlib']['tarball'][1]], 
                     stdout=zlib_log,
                     stderr=zlib_log)
     zlib_log.close()
+    return p 
 
 def install_hepmc(tmp_path):
     """Installation operations for hepmc""" 
     hepmc_log = open(pjoin(_HepTools['hepmc']['install_path'],"hepmc_install.log"), "w")
-    subprocess.call([pjoin(_installers_path,'installHEPMC2.sh'),
+    p= subprocess.call([pjoin(_installers_path,'installHEPMC2.sh'),
                      _HepTools['hepmc']['install_path'],
                      _HepTools['hepmc']['version'],
                      _HepTools['hepmc']['tarball'][1]],
                     stdout=hepmc_log,
                     stderr=hepmc_log)
     hepmc_log.close()
+    return p 
 
 def install_hepmc3(tmp_path):
     """Installation operations for hepmc3"""
     hepmc3_log = open(pjoin(_HepTools['hepmc3']['install_path'],"hepmc3_install.log"), "w")
-    subprocess.call([pjoin(_installers_path,'installHEPMC3.sh'),
+    p = subprocess.call([pjoin(_installers_path,'installHEPMC3.sh'),
                      _HepTools['hepmc3']['install_path'],
                      _HepTools['hepmc3']['version'],
                      _HepTools['hepmc3']['tarball'][1]],
                     stdout=hepmc3_log,
                     stderr=hepmc3_log)
     hepmc3_log.close()
+    return p 
 
 def install_boost(tmp_path):
     """Installation operations for boost"""
     boost_log = open(pjoin(_HepTools['boost']['install_path'],"boost_install.log"), "w")
-    subprocess.call([pjoin(_installers_path,'installBOOST.sh'),
+    p = subprocess.call([pjoin(_installers_path,'installBOOST.sh'),
                      _HepTools['boost']['install_path'],
                      _HepTools['boost']['version'],
                      _HepTools['boost']['tarball'][1]],
                     stdout=boost_log,
                     stderr=boost_log)
     boost_log.close()
+    return p 
 
 def install_cmake(tmp_path):
     """Installation operations for boost"""
@@ -773,13 +777,14 @@ def install_cmake(tmp_path):
     if sys.platform == "darwin":
         # The cmake version of curl shipped with cmake does not work on modern macs.
         configuration_options.append('--system-curl')
-    subprocess.call([pjoin(_installers_path,'installCMAKE.sh'),
+    p= subprocess.call([pjoin(_installers_path,'installCMAKE.sh'),
                      _HepTools['cmake']['install_path'],
                      _HepTools['cmake']['tarball'][1],
                      ' '.join(configuration_options)],
                     stdout=cmake_log,
                     stderr=cmake_log)
     cmake_log.close()
+    return p 
 
 def install_oneloop(tmp_path):
     """Installation operations for OneLOop"""
@@ -787,7 +792,7 @@ def install_oneloop(tmp_path):
     import os, sys
     my_env = os.environ.copy()
     my_env["HEP_PYTHON"] = sys.executable
-    subprocess.call([pjoin(_installers_path,'installOneLOop.sh'),
+    p = subprocess.call([pjoin(_installers_path,'installOneLOop.sh'),
                       _HepTools['oneloop']['install_path'],
                      _HepTools['oneloop']['version'],
                      _HepTools['oneloop']['tarball'][1]],
@@ -795,6 +800,7 @@ def install_oneloop(tmp_path):
                     stderr=oneloop_log,
                     env=my_env)
     oneloop_log.close()
+    return p 
 
 def install_collier(tmp_path):
     """Installation operat ons for COLLIER"""
@@ -809,7 +815,7 @@ def install_collier(tmp_path):
                 _HepTools['collier']['version'] = collier_version
             break
     
-    subprocess.call([pjoin(_installers_path,'installCOLLIER.sh'),
+    p = subprocess.call([pjoin(_installers_path,'installCOLLIER.sh'),
                       _HepTools['collier']['install_path'],
                      _HepTools['collier']['version'],
                      _HepTools['collier']['tarball'][1],
@@ -817,6 +823,7 @@ def install_collier(tmp_path):
                     stdout=collier_log,
                     stderr=collier_log)
     collier_log.close()
+    return p 
 
 def install_emela(tmp_path):
     """Installation operat ons for COLLIER"""
@@ -825,7 +832,7 @@ def install_emela(tmp_path):
     boost_dir = [p for p in os.listdir(_HepTools['boost']['install_path']) if p.startswith('boost') and not p.endswith('.log')][0]
 
 
-    subprocess.call([pjoin(_installers_path,'installEMELA.sh'),
+    p = subprocess.call([pjoin(_installers_path,'installEMELA.sh'),
                       _HepTools['emela']['install_path'],
                      _HepTools['emela']['version'],
                      _HepTools['emela']['tarball'][1],
@@ -837,6 +844,7 @@ def install_emela(tmp_path):
                     stderr=log,
                     env=my_env)
     log.close()
+    return p
 
 def install_ninja(tmp_path):
     """Installation operations for Ninja"""
@@ -849,7 +857,7 @@ def install_ninja(tmp_path):
             cxx_flags.append(flag)
 
     ninja_log = open(pjoin(_HepTools['ninja']['install_path'],"ninja_install.log"), "w")
-    subprocess.call([pjoin(_installers_path,'installNinja.sh'),
+    p = subprocess.call([pjoin(_installers_path,'installNinja.sh'),
                      _HepTools['ninja']['install_path'],
                      _HepTools['ninja']['tarball'][1],
                      _HepTools['oneloop']['install_path'],
@@ -857,6 +865,7 @@ def install_ninja(tmp_path):
                     stdout=ninja_log,
                     stderr=ninja_log)
     ninja_log.close()
+    return p 
 
 def install_lhapdf6(tmp_path):
     """Installation operations for lhapdf6"""
@@ -869,7 +878,7 @@ def install_lhapdf6(tmp_path):
     cxx_flags += ' -std=c++11 '
     my_env = os.environ.copy()
     my_env["PYTHON"] = sys.executable
-    subprocess.call([pjoin(_installers_path,'installLHAPDF6.sh'),
+    p = subprocess.call([pjoin(_installers_path,'installLHAPDF6.sh'),
                      _HepTools['boost']['install_path'],
                      _HepTools['lhapdf6']['install_path'],
                      _HepTools['lhapdf6']['version'],
@@ -879,6 +888,7 @@ def install_lhapdf6(tmp_path):
                     stderr=lhapdf6_log,
                     env=my_env)
     lhapdf6_log.close()
+    return p 
 
 def install_yoda(tmp_path):
     """Installation operations for lhapdf6"""
@@ -891,7 +901,7 @@ def install_yoda(tmp_path):
     cxx_flags += ' -std=c++11 '
     my_env = os.environ.copy()
     my_env["PYTHON"] = sys.executable
-    subprocess.call([pjoin(_installers_path,'installYODA.sh'),
+    p = subprocess.call([pjoin(_installers_path,'installYODA.sh'),
                      _HepTools['yoda']['install_path'],
                      _HepTools['yoda']['version'],
                      _HepTools['yoda']['tarball'][1],
@@ -901,6 +911,7 @@ def install_yoda(tmp_path):
                     env=my_env)
     print('install done')
     log.close()
+    return p 
 
 def install_rivet(tmp_path):
     """Installation operations for lhapdf6"""
@@ -913,7 +924,7 @@ def install_rivet(tmp_path):
     cxx_flags += ' -std=c++14 '
     my_env = os.environ.copy()
     my_env["PYTHON"] = sys.executable
-    subprocess.call([pjoin(_installers_path,'installRIVET.sh'),
+    p = subprocess.call([pjoin(_installers_path,'installRIVET.sh'),
                      _HepTools['rivet']['install_path'],
                      _HepTools['rivet']['version'],
                      _HepTools['rivet']['tarball'][1],
@@ -926,6 +937,7 @@ def install_rivet(tmp_path):
                     env=my_env)
     print('install done')
     log.close()
+    return p 
 
 def install_contur(tmp_path):
     """Installation operations for contur"""
@@ -938,7 +950,7 @@ def install_contur(tmp_path):
     cxx_flags += ' -std=c++14 '
     my_env = os.environ.copy()
     my_env["PYTHON"] = sys.executable
-    subprocess.call(' '.join([pjoin(_installers_path,'installcontur.sh'),
+    p = subprocess.call(' '.join([pjoin(_installers_path,'installcontur.sh'),
                      _HepTools['contur']['install_path'],
                      _HepTools['contur']['version'],
                      _HepTools['contur']['tarball'][1],
@@ -952,71 +964,78 @@ def install_contur(tmp_path):
                     env=my_env,
                     shell=True)
     print('install done')
-    log.close()    
+    log.close()  
+    return p   
     
     
 
 def install_lhapdf5(tmp_path):
     """Installation operations for lhapdf5"""
     lhapdf5_log = open(pjoin(_HepTools['lhapdf5']['install_path'],"lhapdf5_install.log"), "w")
-    subprocess.call([pjoin(_installers_path,'installLHAPDF5.sh'),
+    p = subprocess.call([pjoin(_installers_path,'installLHAPDF5.sh'),
                      _HepTools['lhapdf5']['install_path'],
                      _HepTools['lhapdf5']['version'],
                      _HepTools['lhapdf5']['tarball'][1]],
                     stdout=lhapdf5_log,
                     stderr=lhapdf5_log)
     lhapdf5_log.close()
+    return p 
 
 def install_gsl(tmp_path):
     """Installation operations for lhapdf5"""
     gsl_log = open(pjoin(_HepTools['gsl']['install_path'],"gsl_install.log"), "w")
-    subprocess.call([pjoin(_installers_path,'installgsl.sh'),
+    p = subprocess.call([pjoin(_installers_path,'installgsl.sh'),
                      _HepTools['gsl']['install_path'],
                      _HepTools['gsl']['version'],
                      _HepTools['gsl']['tarball'][1]],
                     stdout=gsl_log,
                     stderr=gsl_log)
     gsl_log.close()
+    return p 
+
 
 def install_fitsio(tmp_path):
     """Installation operations for lhapdf5"""
     log = open(pjoin(_HepTools['fitsio']['install_path'],"fitsio_install.log"), "w")
-    subprocess.call([pjoin(_installers_path,'installfitsio.sh'),
+    p = subprocess.call([pjoin(_installers_path,'installfitsio.sh'),
                      _HepTools['fitsio']['install_path'],
                      _HepTools['fitsio']['version'],
                      _HepTools['fitsio']['tarball'][1]],
                     stdout=log,
                     stderr=log)
     log.close()
+    return p 
 
 def install_fastjet(tmp_path):
     """Installation operations for lhapdf5"""
     log = open(pjoin(_HepTools['fastjet']['install_path'],"fastjet_install.log"), "w")
-    subprocess.call([pjoin(_installers_path,'installfastjet.sh'),
+    p = subprocess.call([pjoin(_installers_path,'installfastjet.sh'),
                      _HepTools['fastjet']['install_path'],
                      _HepTools['fastjet']['version'],
                      _HepTools['fastjet']['tarball'][1]],
                     stdout=log,
                     stderr=log)
     log.close()
+    return p 
+
 
 def install_fjcontrib(tmp_path):
     """Installation operations for lhapdf5"""
     _HepTools['fjcontrib']['install_path'] = _HepTools['fastjet']['install_path']
     log = open(pjoin(_HepTools['fjcontrib']['install_path'],"fjcontrib_install.log"), "w")
-    subprocess.call([pjoin(_installers_path,'installfjcontrib.sh'),
+    p = subprocess.call([pjoin(_installers_path,'installfjcontrib.sh'),
                      _HepTools['fastjet']['install_path'],
                      _HepTools['fjcontrib']['version'],
                      _HepTools['fjcontrib']['tarball'][1]],
                     stdout=log,
                     stderr=log)
     log.close()
+    return p 
 
-    
 def install_dragon(tmp_path):
     """Installation operations for lhapdf5"""
     log = open(pjoin(_HepTools['dragon']['install_path'],"dragon_install.log"), "w")
-    subprocess.call([pjoin(_installers_path,'installdragon.sh'),
+    p = subprocess.call([pjoin(_installers_path,'installdragon.sh'),
                      _HepTools['dragon']['install_path'],
                      _HepTools['dragon']['version'],
                      _HepTools['dragon']['tarball'][1],
@@ -1025,18 +1044,19 @@ def install_dragon(tmp_path):
                     stdout=log,
                     stderr=log)
     log.close()
+    return p 
 
 def install_dragon_data(tmp_path):
     """Installation operations for lhapdf5"""
     log = open(pjoin(_HepTools['dragon_data']['install_path'],"dragon_data_install.log"), "w")
-    subprocess.call([pjoin(_installers_path,'installdragondata.sh'),
+    p = subprocess.call([pjoin(_installers_path,'installdragondata.sh'),
                      _HepTools['dragon_data']['install_path'],
                      _HepTools['dragon_data']['tarball'][1]
                      ],
                     stdout=log,
                     stderr=log)
     log.close()
-
+    return p 
 
 
 def install_mg5amc_py8_interface(tmp_path):
@@ -1055,10 +1075,12 @@ def install_mg5amc_py8_interface(tmp_path):
 
     # Run the installation script
     mg5amc_py8_interface_log = open(pjoin(_HepTools['mg5amc_py8_interface']['install_path'],"mg5amc_py8_interface_install.log"), "w")
-    subprocess.call([sys.executable, pjoin(_HepTools['mg5amc_py8_interface']['install_path'],'compile.py')]+options, 
+    p = subprocess.call([sys.executable, pjoin(_HepTools['mg5amc_py8_interface']['install_path'],'compile.py')]+options, 
                     stdout=mg5amc_py8_interface_log,
                     stderr=mg5amc_py8_interface_log)
     mg5amc_py8_interface_log.close()
+    return p 
+    
 
 def install_rosetta(tmp_path):
     """ Installation operations for the rosetta"""
@@ -1136,10 +1158,11 @@ def install_madanalysis5(tmp_path):
     # Run the installation script
     madanalysis5_interface_log = open(pjoin(_HepTools['madanalysis5']['install_path'],"madanalysis5_install.log"), "w")
     logger.debug('> Calling MadAnalysis5 installer python script with:\n     %s'%' '.join([pjoin(_installers_path,'installMadAnalysis5.py')]+options))
-    subprocess.call([sys.executable, pjoin(_installers_path,'installMadAnalysis5.py')]+options, 
+    p = subprocess.call([sys.executable, pjoin(_installers_path,'installMadAnalysis5.py')]+options, 
                     stdout=madanalysis5_interface_log,
                     stderr=madanalysis5_interface_log)
     madanalysis5_interface_log.close()
+    return p 
 
 def install_pythia8(tmp_path):
     """Installation operations for pythia8"""
@@ -1196,7 +1219,7 @@ def install_pythia8(tmp_path):
     # Now run the installation
     pythia_log = open(pjoin(_HepTools['pythia8']['install_path'],"pythia8_install.log"), "w")
     logger.info("mg path %s", _mg5_path)
-    subprocess.call([pjoin(_installers_path,'installPYTHIA8.sh'),
+    p = subprocess.call([pjoin(_installers_path,'installPYTHIA8.sh'),
                      _HepTools['pythia8']['install_path'],
                      _HepTools['pythia8']['tarball'][1],
                      _HepTools['hepmc']['install_path'],
@@ -1207,7 +1230,7 @@ def install_pythia8(tmp_path):
                     stdout=pythia_log,
                     stderr=pythia_log)
     pythia_log.close()
-
+    return p 
 
 def install_ginac_mg5_interface(tmp_path):
     """Installation operations for ginac_mg5_interface"""
@@ -1216,7 +1239,7 @@ def install_ginac_mg5_interface(tmp_path):
         logger.warning("""This version of MG5 does not include/need the GINAC/MG5 interface""")
     else:
         ginac_mg5_interface_log = open(pjoin(_HepTools['ginac_mg5_interface']['install_path'],"ginac_mg5_interface_install.log"), "w")
-        subprocess.call([pjoin(_installers_path,'installGINAC_MG5_INTERFACE.sh'),
+        p = subprocess.call([pjoin(_installers_path,'installGINAC_MG5_INTERFACE.sh'),
                      _HepTools['ginac_mg5_interface']['install_path'],
                      _HepTools['ginac_mg5_interface']['tarball'][1],
                      _cpp,
@@ -1225,7 +1248,8 @@ def install_ginac_mg5_interface(tmp_path):
                     stdout=ginac_mg5_interface_log,
                     stderr=ginac_mg5_interface_log)
         ginac_mg5_interface_log.close()
-
+        return p 
+    
 def install_ginac(tmp_path):
     """For now only check if GINAC is available in the system"""
     # Test if the interface is available
@@ -1237,6 +1261,7 @@ def install_ginac(tmp_path):
         else:
             logger.error("""GINAC is not installed in your system. For the moment it needs to be installed externally""")
             sys.exit(1)
+
 def install_cln(tmp_path):
     """For now only check if CLN is available in the system"""
     # Test if the interface is available
@@ -1261,13 +1286,14 @@ def install_nklo_tools(tmp_path):
             shutil.rmtree(_HepTools['nklo_tools']['install_path'])
         shutil.copytree(_HepTools['nklo_tools']['tarball'][1],_HepTools['nklo_tools']['install_path'])
         NkLO_tools_log = open(pjoin(_HepTools['nklo_tools']['install_path'],"NkLO_tools_interface_install.log"), "w")
-        subprocess.call([pjoin(_installers_path,'installNKLO_TOOLS.sh'),
+        p = subprocess.call([pjoin(_installers_path,'installNKLO_TOOLS.sh'),
                      _HepTools['nklo_tools']['install_path']
                      ],
                     stdout=NkLO_tools_log,
                     stderr=NkLO_tools_log)
         NkLO_tools_log.close()
-
+        return p 
+    
 #==================================================================================================
 def finalize_installation(tool):
     """ Finalize the installation of the tool specified by copying all its libraries and executable
@@ -1612,9 +1638,10 @@ def install_with_dependencies(target,is_main_target=False):
         logger.info("Installing tool '%s'...", target)
         logger.info("    > Follow the installation progress by running the command below in a separate terminal)")
         logger.info("    > tail -f %s", pjoin(_HepTools[target]['install_path'],'%s_install.log'%target))
-        exec('install_%s(tmp_path)' % target)
+        return_code = eval('install_%s(tmp_path)' % target)
+        print("RETURN CODE AT PYTHON:", return_code)
         if not is_main_target:
-            if check_successful_installation(target):
+            if check_successful_installation(target) and return_code == 0:
                 # Successful installation, now copy the installed components directly under HEPTools
                 finalize_installation(target)
                 logger.info("    > Successful installation of dependency '%s' in '%s'."%(target,_prefix))
@@ -1629,7 +1656,11 @@ def install_with_dependencies(target,is_main_target=False):
                     logger.info("    > No additional information on the installation problem available.")
                 logger.info("    > Now aborting installation of tool '%s'."%target_tool)
                 sys.exit(9)
-
+        elif return_code != 0:
+            logger.info("    > A problem occured during the installation of '%s'.", target)
+            logger.info("    > Return code of the installation is %s" , return_code)
+            logger.info("    > See installation log at '%s' "%pjoin(_HepTools[target]['install_path'],                '%s_install.log'%target))
+            sys.exit(return_code)
 
 if "__main__" == __name__:
     _environ = dict(os.environ)
