@@ -350,7 +350,17 @@ _HepTools = {'hepmc':
                 'optional_dependencies' : [],
                 'libraries' : ['libeMELA.so'],
                 'install_path':  '%(prefix)s/EMELA/',
-                }
+                },
+            'cudacpp':
+               {'install_mode': 'Default',
+                'version':       'relase_for_%(mg5_version)',
+                'www': 'http://madgraph.phys.ucl.ac.be/Downloads/cudacpp/version_info.dat',
+#                'tarball':      ['online','http://madgraph.phys.ucl.ac.be/Downloads/MG5aMC_PY8_interface.tar.gz'],
+                'tarball':      ['online','MG5_specific'],
+                'mandatory_dependencies': [],
+                'optional_dependencies' : [],
+                'libraries' : [''],
+                'install_path':  '%(mg5_path)s/PLUGIN/'},
             }
 
 # Set default for advanced options
@@ -493,7 +503,51 @@ def adapt_tarball_paths_according_to_MG5_version(MG5_version):
         if tool_name in ['lhapdf6', 'lhapdf'] and MG5_version and MG5_version < LooseVersion("2.6.1"):
             for key in tool_options:
                 _HepTools['lhapdf6'][key] = _HepTools['lhapdf61'][key]
-            
+        if  'MG5_specific' == _HepTools[tool_name]['tarball'][1]:
+            import urllib.request as request
+            import six 
+            data = six.moves.urllib.request.urlopen(_HepTools[tool_name]['www'])
+            struct = {}
+            for line in data:
+                line = line.decode()
+                version, html = line.split(maxsplit=1)
+                major, medium, minor = [int(i) for i in version.split('.')[:3]]
+                struct[(major, medium, minor)] = html
+
+            # Find compatible tarball
+            html = find_compatible_tarball(struct, MG5_version)
+            _HepTools[tool_name]['tarball'] = ['online', html]
+
+
+def find_compatible_tarball(database, MG5_version):
+    """ struct is a database of the form (major, medium, minor) -> something (typically html link)
+        this function 
+        The rule is to find the version A.B.C with a lower (or equal) numbering 
+        present in the datastructure
+        Only version with A.B.C version are handle (pure digit)
+        A.B.C.D are working but all .D are just ignored below and therefore treated as A.B.C
+    """
+
+    MG5_major, MG5_medium, MG5_minor = [int(i) for i in str(MG5_version).split('.')[:3]] 
+    for major in range(MG5_major, -1, -1):
+        # find the rang of allowed value for the second index
+        if major == MG5_major:
+            max_medium = MG5_medium
+        else:
+            max_medium = max([v2 for (v1, v2, v3) in database if v1 == major], default=-1)
+
+        for medium in range(max_medium, -1, -1):
+            # find the rang of allowed value for the third index
+            if major == MG5_major and medium == MG5_medium:
+                max_minor = MG5_minor
+            else:
+                max_minor = max([v3 for (v1, v2, v3) in database if v1 == major and v2 == medium], default=-1)
+
+            for minor in range(max_minor, -1, -1):
+                if (major, medium, minor) in database:
+                    return database[(major, medium, minor)].strip() 
+                
+    raise Exception("No compatible data detected")          
 
 if '__main__' == __name__:
     _version = None
@@ -543,7 +597,8 @@ if '__main__' == __name__:
                 _mg5_version = None
                 for line in open(pjoin(_mg5_path,'VERSION'),'r').read().split('\n'):
                     if line.startswith('version ='):
-                        _mg5_version = LooseVersion(line[9:].strip())
+                        out = re.findall(r'version\s*=\s*([\.\d]*)', line)
+                        _mg5_version = LooseVersion(out[0])
                         break
             except:
                 raise
@@ -1058,6 +1113,12 @@ def install_dragon_data(tmp_path):
     log.close()
     return p 
 
+def install_cudacpp(tmp_path):
+    # Extract the tarball
+    tar = tarfile.open(_HepTools['cudacpp']['tarball'][1],)
+    tar.extractall(path=_HepTools['cudacpp']['install_path'])
+    tar.close()    
+    return False
 
 def install_mg5amc_py8_interface(tmp_path):
     """ Installation operations for the mg5amc_py8_interface"""
@@ -1368,6 +1429,8 @@ def get_data(links):
        returncode = subprocess.call(program+[link])
        if not returncode:
           return pjoin(os.getcwd(),os.path.basename(link))
+       else:
+           raise Exception
 
 # find a library in common paths 
 def which_lib(lib, tool=None):
