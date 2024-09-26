@@ -663,6 +663,7 @@ if '__main__' == __name__:
 
         if _HepTools[tool]['tarball'][0]=='online':
            version = _HepTools[tool]['version']
+           if _mg5_version and '%(_mg5_version)s' in version: version = version % {'_mg5_version' : str(_mg5_version)}
            if 'format_version' in _HepTools[tool]:
               version = _HepTools[tool]['format_version'](version)
            if not _force_local_server:
