@@ -1115,10 +1115,10 @@ def install_dragon_data(tmp_path):
     return p 
 
 def install_cudacpp(tmp_path):
-    # Extract the tarball
-    tar = tarfile.open(_HepTools['cudacpp']['tarball'][1],)
-    tar.extractall(path=_HepTools['cudacpp']['install_path'])
-    tar.close()    
+    tarball = _HepTools['cudacpp']['tarball'][1]
+    install_path = _HepTools['cudacpp']['install_path']
+    # Unpack the tarball
+    shutil.unpack_archive(tarball, install_path)
     return False
 
 def install_mg5amc_py8_interface(tmp_path):
