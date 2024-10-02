@@ -560,7 +560,7 @@ if '__main__' == __name__:
             option = user_option
             value  = None
         if option not in available_options:
-            logger.error("Option '%s' not reckognized." , option)
+            logger.error("HEPToolsInstaller.py: option '%s' not recognized." , option)
             sys.exit(9)
         if option=='--force':
             _overwrite_existing_installation = True
