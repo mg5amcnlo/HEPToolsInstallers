@@ -413,15 +413,15 @@ logging.basicConfig(format='%(message)s',level=logger_level)
 
 if "__main__" == __name__:
 
-   if len(sys.argv)>1 and sys.argv[1].lower() not in _HepTools.keys():
+   if 'help' in sys.argv or '--help' in sys.argv:
+      sys.argv[1] = 'help'
+   elif len(sys.argv)>1 and sys.argv[1].lower() not in _HepTools.keys():
       logger.warning("HEPToolInstaller does not support the installation of %s" , sys.argv[1])
       sys.argv[1] = 'help'
 
-
-
    if len(sys.argv)<2 or sys.argv[1]=='help': 
       print( """
-./HEPToolInstaller <target> <options>"
+./HEPToolInstaller <target> <options>
      Possible values and meaning for the various <options> are:
            
      |           option           |    value           |                          meaning
