@@ -353,10 +353,11 @@ _HepTools = {'hepmc':
                 },
             'cudacpp':
                {'install_mode': 'Default',
-                'version':       'relase_for_%(mg5_version)',
-                'www': 'http://madgraph.phys.ucl.ac.be/Downloads/cudacpp/version_info.dat',
-#                'tarball':      ['online','http://madgraph.phys.ucl.ac.be/Downloads/MG5aMC_PY8_interface.tar.gz'],
-                'tarball':      ['online','MG5_specific'],
+                'version': 'TEST_cudacpp_for%(_mg5_version)s_latest',
+                'www': 'https://raw.githubusercontent.com/madgraph5/madgraph4gpu/refs/heads/INFO/version_info.dat',
+                'tarball': ['online','MG5_specific'],
+                ###'www': 'https://github.com/valassi/madgraph4gpu/releases',
+                ###'tarball': ['online','%(www)s/download/%(version)s/cudacpp.tar.gz'],
                 'mandatory_dependencies': [],
                 'optional_dependencies' : [],
                 'libraries' : [''],
@@ -412,15 +413,15 @@ logging.basicConfig(format='%(message)s',level=logger_level)
 
 if "__main__" == __name__:
 
-   if len(sys.argv)>1 and sys.argv[1].lower() not in _HepTools.keys():
+   if 'help' in sys.argv or '--help' in sys.argv:
+      sys.argv[1] = 'help'
+   elif len(sys.argv)>1 and sys.argv[1].lower() not in _HepTools.keys():
       logger.warning("HEPToolInstaller does not support the installation of %s" , sys.argv[1])
       sys.argv[1] = 'help'
 
-
-
    if len(sys.argv)<2 or sys.argv[1]=='help': 
       print( """
-./HEPToolInstaller <target> <options>"
+./HEPToolInstaller <target> <options>
      Possible values and meaning for the various <options> are:
            
      |           option           |    value           |                          meaning
@@ -559,7 +560,7 @@ if '__main__' == __name__:
             option = user_option
             value  = None
         if option not in available_options:
-            logger.error("Option '%s' not reckognized." , option)
+            logger.error("HEPToolsInstaller.py: option '%s' not recognized." , option)
             sys.exit(9)
         if option=='--force':
             _overwrite_existing_installation = True
@@ -663,6 +664,7 @@ if '__main__' == __name__:
 
         if _HepTools[tool]['tarball'][0]=='online':
            version = _HepTools[tool]['version']
+           if _mg5_version and '%(_mg5_version)s' in version: version = version % {'_mg5_version' : str(_mg5_version)}
            if 'format_version' in _HepTools[tool]:
               version = _HepTools[tool]['format_version'](version)
            if not _force_local_server:
@@ -1114,10 +1116,10 @@ def install_dragon_data(tmp_path):
     return p 
 
 def install_cudacpp(tmp_path):
-    # Extract the tarball
-    tar = tarfile.open(_HepTools['cudacpp']['tarball'][1],)
-    tar.extractall(path=_HepTools['cudacpp']['install_path'])
-    tar.close()    
+    tarball = _HepTools['cudacpp']['tarball'][1]
+    install_path = _HepTools['cudacpp']['install_path']
+    # Unpack the tarball
+    shutil.unpack_archive(tarball, install_path)
     return False
 
 def install_mg5amc_py8_interface(tmp_path):
