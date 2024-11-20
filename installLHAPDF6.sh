@@ -10,8 +10,15 @@ set_environment () {
   INSTALLD="$2"
   VERSION="$3"
   TARBALL="$4"
-  CXXFLAGS="$5"
+  PYVAR="$5"
+  CXXFLAGS="$6"
   LOCAL=$INSTALLD
+
+   mkdir $LOCAL/python$PYVAR 2&>/dev/null
+   mkdir $LOCAL/python$PYVAR/bin
+   export PYTHONPATH=$PYTHONPATH:$LOCAL/python$PYVAR
+   ln -s `which python$PYVAR` $LOCAL/python$PYVAR/bin/python
+   export PATH=$LOCAL/python$PYVAR/bin/:$PATH
 
   # set SLC5 platform name:
   LCG_PLATFORM=i686
@@ -48,9 +55,25 @@ run () {
       diff configure.bckp configure
   fi
 
-  echo " Configure LHAPDF: $CXXFLAGS"
-  
-
+  echo " Configure LHAPDF: $CXXFLAGS for PYTHON $PYVAR"
+ 
+    #ensure that proper cython is used for python3.13
+    if [[ "${PYVAR}" == "3.13" ]]
+    then
+        for module in cython
+        do
+            echo "module= $module"
+            if  `python -c "import $module"`; then
+                echo "working"
+            else
+                echo "use pip to install: pip install $module  --target=$LOCAL/python$PYVAR"
+                pip install $module  --target=$LOCAL/python$PYVAR --upgrade
+            fi
+        done
+    elif [[ "${PYVAR}" == "3.14" ]]
+    then
+        echo "Python 3.14 not yet tested -> likely need dedicated cython installation"
+    fi  
   LIBRARY_PATH=$LD_LIBRARY_PATH ./configure CXXFLAGS="$CXXFLAGS" --prefix=$LOCAL --bindir=$LOCAL/bin --datadir=$LOCAL/share --libdir=$LOCAL/lib --enable-static
   echo " Compile LHAPDF6"
   LIBRARY_PATH=$LD_LIBRARY_PATH make
@@ -96,5 +119,16 @@ run () {
 }
 
 set_environment "$@"
+ python() {
+     `which python$PYVAR` "$@"
+ }
+ export -f python
+ pip(){
+     `which pip$PYVAR` "$@"
+ }
+ export -f pip
+
+
 run "$@"
+
 

@@ -13,11 +13,13 @@ import glob
 import logging
 import re
 try:
-    from distutils.version import LooseVersion, StrictVersion
+    from distutils.version import LooseVersion
 except ModuleNotFoundError:
-    from packaging.version import parse, Version
-    LooseVersion = parse
-    StrictVersion = Version
+    try:
+        from packaging.version import parse, Version
+        LooseVersion = parse
+    except ModuleNotFoundError:
+        from looseversion import LooseVersion
 
 logger = logging
 pjoin = os.path.join
@@ -947,7 +949,8 @@ def install_lhapdf6(tmp_path):
                      _HepTools['lhapdf6']['install_path'],
                      _HepTools['lhapdf6']['version'],
                      _HepTools['lhapdf6']['tarball'][1],
-                     cxx_flags],
+                     ".".join([str(i) for i in sys.version_info[:2]]),
+                     cxx_flags,],
                     stdout=lhapdf6_log,
                     stderr=lhapdf6_log,
                     env=my_env)
