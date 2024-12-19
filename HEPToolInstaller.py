@@ -356,7 +356,7 @@ _HepTools = {'hepmc':
             'cudacpp':
                {'install_mode': 'Default',
                 'version': 'TEST_cudacpp_for%(_mg5_version)s_latest',
-                'www': 'http://madgraph.phys.ucl.ac.be/cudacpp/info.dat',
+                'www': 'http://madgraph.phys.ucl.ac.be/Downloads/cudacpp/info.dat',
                 'tarball': ['online','MG5_specific'],
                 ###'www': 'https://github.com/valassi/madgraph4gpu/releases',
                 ###'tarball': ['online','%(www)s/download/%(version)s/cudacpp.tar.gz'],
