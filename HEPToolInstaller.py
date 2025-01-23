@@ -608,6 +608,8 @@ if '__main__' == __name__:
                 for line in open(pjoin(_mg5_path,'VERSION'),'r').read().split('\n'):
                     if line.startswith('version ='):
                         out = re.findall(r'version\s*=\s*([\.\d]*)', line)
+                        if out[0].endswith('.'):
+                            out[0] = out[0][:-1]
                         _mg5_version = LooseVersion(out[0])
                         break
             except:
