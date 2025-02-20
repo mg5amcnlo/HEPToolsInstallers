@@ -14,7 +14,9 @@ run () {
 	tar xzvf ${TARBALLPATH} -C Ninja --strip-components 1
 	echo "Entering Ninja directory and installing Ninja"
     cd Ninja
-    mv VERSION TEMPVERSION
+    if [ -f VERSION ]; then
+        mv VERSION TEMPVERSION
+    fi
     if [ "$(uname)" == "Darwin" ]; then
 	./configure --prefix=${NINJAINSTALLD} --enable-higher_rank --with-avholo='-L'"${ONELOOPPATH}"' -lavh_olo' FCINCLUDE=-I${ONELOOPPATH} CXX=${CXX} CXXFLAGS="${COMPILATIONFLAGS}" CPPFLAGS='-DNINJA_NO_EXCEPTIONS -fPIC' --disable-quadninja LIBS=${CPPSTANDARDLIB}
     else
@@ -26,8 +28,13 @@ run () {
 	echo "== End of content of config.log =="
 	make
 	make install
-    mv TEMPVERSION VERSION
+    if [ -f TEMPVERSION ]; then
+        mv TEMPVERSION VERSION
+    fi
     cd ..
+    cd ${NINJAINSTALLD}
+    ./bin/ninja-config --version > VERSION
+    ./bin/ninja-config --version > Ninja/VERSION
     echo "Finished installing Ninja"
 }
 

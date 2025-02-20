@@ -244,10 +244,10 @@ _HepTools = {'hepmc':
                 'install_path':  '%(prefix)s/MG5aMC_PY8_interface/'},
                'ninja':
                {'install_mode':'Default',
-                'version':       '1.1 (not semantic)',
+                'version':       '1.2 (not semantic)',
                 'www' : 'https://ninja.hepforge.org/downloads/',
                 'mandatory_dependencies': ['oneloop'],
-                'tarball':      ['online','http://madgraph.phys.ucl.ac.be/Downloads/ninja-1.1.0.tar.gz'],
+                'tarball':      ['online','https://github.com/peraro/ninja/releases/latest/download/ninja-latest.tar.gz'],
                 #'tarball':      ['online','%(www)s/ninja-1.1.0.tar.gz'],
                 'optional_dependencies' : [],
                 'libraries' : ['libninja.%(libextension)s'],
