@@ -58,8 +58,8 @@ run () {
   echo " Configure LHAPDF: $CXXFLAGS for PYTHON $PYVAR"
  
     #ensure that proper cython is used for python3.13
-    if [[ "${PYVAR}" == "3.13" ]]
-    then
+//    if [[ "${PYVAR}" == "3.13" ]]
+//    then
         for module in cython
         do
             echo "module= $module"
@@ -70,7 +70,7 @@ run () {
                 pip install $module  --target=$LOCAL/python$PYVAR --upgrade
             fi
         done
-    elif [[ "${PYVAR}" == "3.14" ]]
+    if [[ "${PYVAR}" == "3.14" ]]
     then
         echo "Python 3.14 not yet tested -> likely need dedicated cython installation"
     fi  
