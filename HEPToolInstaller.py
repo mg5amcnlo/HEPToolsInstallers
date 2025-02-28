@@ -274,7 +274,7 @@ _HepTools = {'hepmc':
                 'install_path':  '%(prefix)s/collier/'},
                'madanalysis5':
                {'install_mode':'Default',
-                'version':       '1.10.9_beta',
+                'version':       '1.10.16',
 #               WARNING USING BETA VERSION OF 1.10.9                
                 'www': 'http://madanalysis.irmp.ucl.ac.be/raw-attachment/wiki/MA5SandBox',
                 'tarball':      ['online','https://github.com/MadAnalysis/madanalysis5/archive/refs/tags/v%(version)s.tar.gz'],
