@@ -172,7 +172,7 @@ _HepTools = {'hepmc':
                 'install_path':  '%(prefix)s/rosetta/'},
              'pythia8':
                {'install_mode':'Default',
-                'version':       '8311',
+                'version':       '8313',
                 'www': 'https://pythia.org/download/pythia83',
 # Official version
                 'tarball':      ['online','%(www)s/pythia%(version)s.tgz'],
