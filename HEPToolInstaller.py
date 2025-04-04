@@ -364,6 +364,17 @@ _HepTools = {'hepmc':
                 'optional_dependencies' : [],
                 'libraries' : [''],
                 'install_path':  '%(mg5_path)s/PLUGIN/'},
+             'dmtcp':
+                {
+                'install_mode':'Default',
+                'version':       '3.2.0',
+                'www': 'https://github.com/dmtcp/dmtcp/',
+                'tarball':      ['online','%(www)s/archive/refs/tags/%(version)s.tar.gz'],
+                   'mandatory_dependencies': [],
+                'optional_dependencies' : [],
+                'libraries' : [''],
+                'install_path':  '%(prefix)s/DMTCP/',
+                },
             }
 
 # Set default for advanced options
@@ -907,6 +918,22 @@ def install_emela(tmp_path):
                      _HepTools['cmake']['install_path'],
                      os.path.join(_HepTools['lhapdf6']['install_path'], 'lhapdf6_py3'),
                      os.path.join(_HepTools['boost']['install_path'],boost_dir),
+                     ],
+                    stdout=log,
+                    stderr=log,
+                    env=my_env)
+    log.close()
+    return p
+
+def install_dmtcp(tmp_path):
+    """Installation operat ons for DMTCP"""
+    log = open(pjoin(_HepTools['dmtcp']['install_path'],"dmtcp_install.log"), "w")
+    my_env = os.environ.copy()
+
+    p = subprocess.call([pjoin(_installers_path,'installDMTCP.sh'),
+                      _HepTools['dmtcp']['install_path'],
+                     _HepTools['dmtcp']['version'],
+                     _HepTools['dmtcp']['tarball'][1],
                      ],
                     stdout=log,
                     stderr=log,
