@@ -15,7 +15,7 @@ run () {
     tar xvzf ${TARBALLPATH}
     echo "Enter DMTCP directory and installing DMTCP"
     ls 
-    cd dmtcp*
+    cd dmtcp-*
     ./configure --prefix=$INSTALLD
     make 
     make install
