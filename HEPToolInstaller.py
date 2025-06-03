@@ -170,6 +170,21 @@ _HepTools = {'hepmc':
                 'libraries' : [],
                 'include_path' : [],
                 'install_path':  '%(prefix)s/rosetta/'},
+             'pythia8_hepmc3':
+               {'install_mode':'Default',
+                'version':       '8313',
+                'www': 'https://pythia.org/download/pythia83',
+# Official version
+                'tarball':      ['online','%(www)s/pythia%(version)s.tgz'],
+# Development version
+#                'tarball':      ['online','http://slac.stanford.edu/~prestel/pythia8217alpha.tar.gz'],                
+                # We put zlib mandatory because we are not going to unzip .lhe files in MG5_aMC when passing them to PY8.
+                'mandatory_dependencies': ['hepmc3','zlib'],
+                # Dependency lhapdf, without version specification means this installer will try linking against the most
+                # recent version
+                'optional_dependencies' : ['lhapdf6'],
+                'libraries' : ['libpythia8.%(libextension)s'],
+                'install_path':  '%(prefix)s/pythia8/'}, 
              'pythia8':
                {'install_mode':'Default',
                 'version':       '8313',
@@ -1302,7 +1317,7 @@ def install_pythia8(tmp_path):
         pass
     cxx_common = ['-ldl','-fPIC',_cpp_standard_lib, '-std=c++11', '-O2', '-pthread']
     if hepmc_named_weight_support:
-        cxx_common.append('-DHEPMC2HACK')
+        cxx_common.append('-DHEPMC2HACK -DHEPMC2')
         logger.debug("The version of HepMC supports the writing of named weights: %s ", _HepTools['hepmc']['install_path'])
     else:
         logger.warning( r"|| /!\/!\/!\ ")
@@ -1325,6 +1340,41 @@ def install_pythia8(tmp_path):
                      _HepTools['pythia8']['install_path'],
                      _HepTools['pythia8']['tarball'][1],
                      _HepTools['hepmc']['install_path'],
+                     _HepTools['zlib']['install_path'],
+                     str(_mg5_path),
+                     cxx_common,
+                     optional_dependences], 
+                    stdout=pythia_log,
+                    stderr=pythia_log)
+    pythia_log.close()
+    return p 
+
+
+def install_pythia8_hepmc3(tmp_path):
+    """Installation operations for pythia8"""
+    
+    # Setup optional dependencies
+    optional_dependences = []
+    for dep in _HepTools['pythia8_hepmc3']['optional_dependencies']:
+        if dep=='lhapdf6':
+            optional_dependences.append('--with-lhapdf6=%s'%_HepTools['lhapdf6']['install_path'])
+            optional_dependences.append('--with-lhapdf6-plugin=LHAPDF6.h')
+
+    cxx_common = ['-ldl','-fPIC',_cpp_standard_lib, '-std=c++11', '-O2', '-pthread']
+
+    
+    # Join the --cxx-common detected
+    cxx_common = "'%s'"%(' '.join(cxx_common))
+    # Join the optional dependencies detected
+    optional_dependences = ' '.join(optional_dependences)
+
+    # Now run the installation
+    pythia_log = open(pjoin(_HepTools['pythia8_hepmc3']['install_path'],"pythia8_install.log"), "w")
+    logger.info("mg path %s", _mg5_path)
+    p = subprocess.call([pjoin(_installers_path,'installPYTHIA8_hepmc3.sh'),
+                     _HepTools['pythia8_hepmc3']['install_path'],
+                     _HepTools['pythia8_hepmc3']['tarball'][1],
+                     _HepTools['hepmc3']['install_path'],
                      _HepTools['zlib']['install_path'],
                      str(_mg5_path),
                      cxx_common,

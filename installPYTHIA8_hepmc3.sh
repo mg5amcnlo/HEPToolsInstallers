@@ -6,8 +6,8 @@ set_environment () {
 
   INSTALLPATH="$1"  
   TARBALL="$2"
-  HEPMC2PATH="$3"
-  HEPMC2INCLUDEPATH=$HEPMC2PATH/include
+  HEPMC3PATH="$3"
+  HEPMC3INCLUDEPATH=$HEPMC3PATH/include
   GZIPPATH="$4"
   MG5PATH="$5"
   CXXCOMMON="$6"
@@ -35,7 +35,7 @@ run () {
   
   echo " >> Configure PYTHIA8"
   make distclean
-  configStr="./configure --prefix=$INSTALLPATH --with-hepmc2=$HEPMC2PATH --with-hepmc2-include=$HEPMC2INCLUDEPATH --with-gzip=$GZIPPATH $OPTIONALDEPENDENCES"  
+  configStr="./configure --prefix=$INSTALLPATH --with-hepmc3=$HEPMC3PATH --with-hepmc3-include=$HEPMC3INCLUDEPATH --with-gzip=$GZIPPATH $OPTIONALDEPENDENCES"  
   if [ "$CXXCOMMON" == "" ];
   then
 	  ${configStr}
