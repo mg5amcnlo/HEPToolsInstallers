@@ -390,6 +390,17 @@ _HepTools = {'hepmc':
                 'libraries' : [''],
                 'install_path':  '%(prefix)s/DMTCP/',
                 },
+             'rapidd':
+                {
+                'install_mode':'Default',
+                'version':       '1.0',
+                'www': 'https://github.com/cheekyparticle/RAPIDD_for_DM/',
+                'tarball':      ['online','%(www)s/archive/maddm.tar.gz'],
+                   'mandatory_dependencies': ['cmake'],
+                'optional_dependencies' : [],
+                'libraries' : [''],
+                'install_path':  '%(prefix)s/rapidd/',
+                },
             }
 
 # Set default for advanced options
@@ -949,6 +960,21 @@ def install_dmtcp(tmp_path):
                       _HepTools['dmtcp']['install_path'],
                      _HepTools['dmtcp']['version'],
                      _HepTools['dmtcp']['tarball'][1],
+                     ],
+                    stdout=log,
+                    stderr=log,
+                    env=my_env)
+    log.close()
+    return p
+
+def install_rapidd(tmp_path):
+    """Installation operat ons for DMTCP"""
+    log = open(pjoin(_HepTools['rapidd']['install_path'],"rapidd_install.log"), "w")
+    my_env = os.environ.copy()
+
+    p = subprocess.call([pjoin(_installers_path,'installRAPIDD.sh'),
+                     _HepTools['rapidd']['install_path'],
+                     _HepTools['rapidd']['tarball'][1],
                      ],
                     stdout=log,
                     stderr=log,
