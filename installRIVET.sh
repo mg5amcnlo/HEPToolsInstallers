@@ -27,15 +27,15 @@ run () {
   workd=$(pwd)
 
   echo " Unpack RIVET"
-  tar xvzf $TARBALL
+  tar xzf $TARBALL
 
   echo " Enter directory"
   cd Rivet-${VERSION}/
 
   echo " Configure RIVET"
-  echo "LIBRARY_PATH=$LD_LIBRARY_PATH YODAPATH=$YODAPATH HEPMCPATH=$HEPMCPATH FASTJETPATH=$FASTJETPATH ./configure CXXFLAGS=$CXXFLAGS --prefix=$LOCAL --bindir=$LOCAL/bin --libdir=$LOCAL/lib --enable-static"
+  echo "LIBRARY_PATH=$LD_LIBRARY_PATH YODAPATH=$YODAPATH HEPMC3PATH=$HEPMCPATH FASTJETPATH=$FASTJETPATH ./configure CXXFLAGS=$CXXFLAGS --prefix=$LOCAL --bindir=$LOCAL/bin --libdir=$LOCAL/lib --enable-static"
   
-  LIBRARY_PATH=$LD_LIBRARY_PATH YODAPATH=$YODAPATH HEPMCPATH=$HEPMCPATH FASTJETPATH=$FASTJETPATH ./configure CXXFLAGS="$CXXFLAGS" --prefix=$LOCAL --bindir=$LOCAL/bin --libdir=$LOCAL/lib --enable-static 
+  LIBRARY_PATH=$LD_LIBRARY_PATH YODAPATH=$YODAPATH HEPMC3PATH=$HEPMCPATH FASTJETPATH=$FASTJETPATH ./configure CXXFLAGS="$CXXFLAGS" --prefix=$LOCAL --bindir=$LOCAL/bin --libdir=$LOCAL/lib --enable-static 
 
   echo " Compile RIVET"
   LIBRARY_PATH=$LD_LIBRARY_PATH make
