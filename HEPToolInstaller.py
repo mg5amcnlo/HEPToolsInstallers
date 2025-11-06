@@ -73,16 +73,16 @@ _HepTools = {'hepmc':
                 'include_path' : ['/opt/local/include', '/usr/local/include', '/opt/include', '/usr/include'], 
                 'install_path':  '%(prefix)s/boost/'},
              'yoda':{'install_mode':'Default',
-                'version':       '1.9.10',
+                'version':       '2.0.3',
                 'www': 'https://yoda.hepforge.org/',
                 'tarball':      ['online', '%(www)s/downloads/YODA-%(version)s.tar.gz'],
-               # Specify a different tarball for mac 
-                 'MG5_version_constraints' : [
+                # Specify a different tarball for mac 
+                'MG5_version_constraints' : [
                      ( lambda MG5version: sys.platform == "darwin",
                         ['online','%(www)s/downloads/YODA-1.9.0.tar.gz'] ),
                          #https://bazaar.launchpad.net/~ma5dev/madanalysis5/v1.9_beta/tarball'] ),
-                 ],
-                     'mandatory_dependencies': [],
+                ],
+                'mandatory_dependencies': [],
                 'optional_dependencies' : [],
                 'libraries' : ['libYODA.%(libextension)s'],
                 'include_path' : [],
@@ -106,10 +106,10 @@ _HepTools = {'hepmc':
                 'include_path' : [],
                 'install_path':  '%(prefix)s/fastjet/'},
              'rivet':{'install_mode':'Default',
-                'version':       '3.1.10',
+                'version':       '4.0.3',
                 'www': 'https://rivet.hepforge.org/',
                 'tarball':      ['online', '%(www)s/downloads/Rivet-%(version)s.tar.gz'],
-                'mandatory_dependencies': ['hepmc', 'yoda', 'fastjet','fjcontrib'],
+                'mandatory_dependencies': ['hepmc3', 'yoda', 'fastjet','fjcontrib'],
                 'optional_dependencies' : [],
                 'libraries' : ['libRivet.%(libextension)s'],
                 'include_path' : [],
@@ -1035,7 +1035,7 @@ def install_yoda(tmp_path):
     for flag in ['-static-libstdc++']:
        if test_cpp_compiler([flag]):
             cxx_flags = flag
-    cxx_flags += ' -std=c++11 '
+    cxx_flags += ' -std=c++17 '
     my_env = os.environ.copy()
     my_env["PYTHON"] = sys.executable
     p = subprocess.call([pjoin(_installers_path,'installYODA.sh'),
@@ -1054,11 +1054,11 @@ def install_rivet(tmp_path):
     """Installation operations for lhapdf6"""
     
     log = open(pjoin(_HepTools['rivet']['install_path'],"rivet_install.log"), "w")
-    cxx_flags = ' ' #FIXME ' -O ' needs to be added back, see https://github.com/mg5amcnlo/HEPToolsInstallers/issues/3
+    cxx_flags = ' -O '
     for flag in ['-static-libstdc++']:
        if test_cpp_compiler([flag]):
             cxx_flags = flag
-    cxx_flags += ' -std=c++14 '
+    cxx_flags += ' -std=c++17 '
     my_env = os.environ.copy()
     my_env["PYTHON"] = sys.executable
     p = subprocess.call([pjoin(_installers_path,'installRIVET.sh'),
@@ -1066,7 +1066,7 @@ def install_rivet(tmp_path):
                      _HepTools['rivet']['version'],
                      _HepTools['rivet']['tarball'][1],
                      _HepTools['yoda']['install_path'],
-                     _HepTools['hepmc']['install_path'],
+                     _HepTools['hepmc3']['install_path'],
                      _HepTools['fastjet']['install_path'],
                      cxx_flags],
                     stdout=log,
