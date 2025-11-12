@@ -202,7 +202,7 @@ _HepTools = {'hepmc':
                 'install_path':  '%(prefix)s/pythia8/'},
              'lhapdf6':
                {'install_mode':'Default',
-                'version':       '6.5.4',
+                'version':       '6.5.5',
                 'www': 'https://lhapdf.hepforge.org/downloads',#?f=LHAPDF-6.1.6.tar.gz',
                 #'tarball': ['online', 'http://madgraph.phys.ucl.ac.be/Downloads/LHAPDF-%(version)s.tar.gz'],
                 'tarball': ['online','%(www)s/LHAPDF-%(version)s.tar.gz'],
@@ -289,7 +289,7 @@ _HepTools = {'hepmc':
                 'install_path':  '%(prefix)s/collier/'},
                'madanalysis5':
                {'install_mode':'Default',
-                'version':       '1.10.16',
+                'version':       '1.11.0',
 #               WARNING USING BETA VERSION OF 1.10.9                
                 'www': 'http://madanalysis.irmp.ucl.ac.be/raw-attachment/wiki/MA5SandBox',
                 'tarball':      ['online','https://github.com/MadAnalysis/madanalysis5/archive/refs/tags/v%(version)s.tar.gz'],
