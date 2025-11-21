@@ -285,7 +285,7 @@ _HepTools = {'hepmc':
                 'tarball':      ['online','%(www)s/collier-latest.tar.gz'],
                 'mandatory_dependencies': ['cmake'],
                 'optional_dependencies' : [],
-                'libraries' : ['libcollier.a'],
+                'libraries' : ['libcollier.%(libextension)s'],
                 'install_path':  '%(prefix)s/collier/'},
                'madanalysis5':
                {'install_mode':'Default',
@@ -1501,14 +1501,15 @@ def finalize_installation(tool):
     # Pick the special location of library for COLLIER
     if tool=='collier':
         all_bin      = []
-        all_lib      = [pjoin(_HepTools[tool]['install_path'],'libcollier.a')]
+        all_lib.extend(glob.glob(pjoin(_HepTools[tool]['install_path'],'*')))
+        all_lib += [lib for lib in all_lib if not any(lib.endswith(ext) for ext in ['.so','.la','.dylib', 'a'])]
 
     # Pick special executable for mg5amc_py8_interface
     if tool=='mg5amc_py8_interface':
         all_bin      += [pjoin(_HepTools[tool]['install_path'],'MG5aMC_PY8_interface')]
 
     # Force static linking for Ninja
-    if tool in ['ninja','pythia8']:
+    if tool in ['pythia8']:
         all_lib = [lib for lib in all_lib if not any(lib.endswith(ext) for ext in ['.so','.la','.dylib'])]
 
     

@@ -29,8 +29,15 @@ run () {
 	cp libcollier.a $ONELOOPINSTALLD
 	mkdir $ONELOOPINSTALLD/include
 	cp modules/*.mod $ONELOOPINSTALLD/include/
+    mkdir build2
+    cd build2
+    ${CMAKEPATH}/bin/cmake -DCMAKE_Fortran_FLAGS=-fPIC ..
+    make
     cd ..
+	echo "Copying the dyn library to target directory"
+	cp libcollier.* $ONELOOPINSTALLD
     echo "Finished installing COLLIER"
+    cd ..
 }
 
 run "$@"
