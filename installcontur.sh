@@ -46,7 +46,7 @@ run () {
 
   echo " Check python dependency and install locally the missing one"
   
-  for module in tqdm numpy scipy configobj matplotlib pyslha pandas contur
+  for module in tqdm numpy scipy configobj matplotlib pyslha pandas matplotlib contur
   do
       echo "module= $module"
       if  `python -c "import $module"`; then
