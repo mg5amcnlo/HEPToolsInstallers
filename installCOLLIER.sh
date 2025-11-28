@@ -6,6 +6,7 @@ run () {
     VERSION="$2"
 	TARBALLPATH="$3"
 	CMAKEPATH="$4"	
+    DO_DYLIB="$5"
     mkdir -p $ONELOOPINSTALLD
     cd $ONELOOPINSTALLD
 	# Make sure there is only a single uncompressed folder starting with COLLIER-
@@ -29,15 +30,17 @@ run () {
 	cp libcollier.a $ONELOOPINSTALLD
 	mkdir $ONELOOPINSTALLD/include
 	cp modules/*.mod $ONELOOPINSTALLD/include/
-    mkdir build2
-    cd build2
-    ${CMAKEPATH}/bin/cmake -DCMAKE_Fortran_FLAGS=-fPIC ..
-    make
-    cd ..
-	echo "Copying the dyn library to target directory"
-	cp libcollier.* $ONELOOPINSTALLD
+    if [ "${DO_DYLIB}" == "ON" ]; then
+        mkdir build2
+        cd build2
+        ${CMAKEPATH}/bin/cmake -DCMAKE_Fortran_FLAGS=-fPIC ..
+        make
+        cd ..
+	    echo "Copying the dyn library to target directory"
+	    cp libcollier.* $ONELOOPINSTALLD
+        cd ..
+    fi
     echo "Finished installing COLLIER"
-    cd ..
 }
 
 run "$@"

@@ -919,12 +919,21 @@ def install_collier(tmp_path):
                 logger.info("HEPToolsInstaller is correcting COLLIER version to be %s"%collier_version)
                 _HepTools['collier']['version'] = collier_version
             break
-    
+
+    # check if we want to generate dynamic libraries or not
+    if LooseVersion("3.5.13") <= _mg5_version < LooseVersion("3.6.0"):
+        dylib = 'ON'
+    elif LooseVersion("3.6.7") <= _mg5_version:
+        dylib = 'ON'
+    else:
+        dylib = 'OFF'
+
     p = subprocess.call([pjoin(_installers_path,'installCOLLIER.sh'),
                       _HepTools['collier']['install_path'],
                      _HepTools['collier']['version'],
                      _HepTools['collier']['tarball'][1],
-                     _HepTools['cmake']['install_path']],
+                     _HepTools['cmake']['install_path'],
+                     dylib],
                     stdout=collier_log,
                     stderr=collier_log)
     collier_log.close()
@@ -992,11 +1001,21 @@ def install_ninja(tmp_path):
         if test_cpp_compiler([flag]):
             cxx_flags.append(flag)
 
+    # check if we want to generate dynamic libraries or not
+    if LooseVersion("3.5.13") <= _mg5_version < LooseVersion("3.6.0"):
+        dylib = 'ON'
+    elif LooseVersion("3.6.7") <= _mg5_version:
+        dylib = 'ON'
+    else:
+        dylib = 'OFF'
+
+
     ninja_log = open(pjoin(_HepTools['ninja']['install_path'],"ninja_install.log"), "w")
     p = subprocess.call([pjoin(_installers_path,'installNinja.sh'),
                      _HepTools['ninja']['install_path'],
                      _HepTools['ninja']['tarball'][1],
                      _HepTools['oneloop']['install_path'],
+
                      ' '.join(cxx_flags),_cpp_standard_lib], 
                     stdout=ninja_log,
                     stderr=ninja_log)
@@ -1508,9 +1527,16 @@ def finalize_installation(tool):
     if tool=='mg5amc_py8_interface':
         all_bin      += [pjoin(_HepTools[tool]['install_path'],'MG5aMC_PY8_interface')]
 
-    # Force static linking for Ninja
-    if tool in ['pythia8']:
-        all_lib = [lib for lib in all_lib if not any(lib.endswith(ext) for ext in ['.so','.la','.dylib'])]
+    # Force static linking for pythia8/ninja
+    if tool in ['pythia8', 'ninja']:
+        if LooseVersion("3.5.13") <= _mg5_version < LooseVersion("3.6.0"):
+            dylib = 'ON'
+        elif LooseVersion("3.6.7") <= _mg5_version:
+            dylib = 'ON'
+        else:
+            dylib = 'OFF'
+        if tool == 'pythia8' or dylib == 'OFF':
+            all_lib = [lib for lib in all_lib if not any(lib.endswith(ext) for ext in ['.so','.la','.dylib'])]
 
     
     for path in all_bin:
