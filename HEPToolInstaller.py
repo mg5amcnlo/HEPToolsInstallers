@@ -382,7 +382,7 @@ _HepTools = {'hepmc':
              'dmtcp':
                 {
                 'install_mode':'Default',
-                'version':       '3.2.0',
+                'version':       '4.1.0',
                 'www': 'https://github.com/dmtcp/dmtcp/',
                 'tarball':      ['online','%(www)s/archive/refs/tags/%(version)s.tar.gz'],
                    'mandatory_dependencies': [],
