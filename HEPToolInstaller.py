@@ -232,18 +232,18 @@ _HepTools = {'hepmc':
                {'install_mode':'Default',
                 # Force to install this dependency if not found locally
                 'allow_system_wide': False,
-                'version':       '1.3.1',
+                'version':       '1.3.2',
                 # Zlib doesn't offer a sticky link and often updates its version. So we must host 1.2.10 ourselves to be stable
                 'tarball':      ['online','http://zlib.net/zlib-%(version)s.tar.gz'],
                 # Not ideal since the MG server can be down quite often.
                 #'tarball':      ['online','http://madgraph.phys.ucl.ac.be/Downloads/zlib-1.2.10.tar.gz'],
                 # This legacy versions webpage should be more stable
                 'www' : ['http://www.zlib.net/','http://madgraph.phys.ucl.ac.be/Downloads/', 'http://madgraph.physics.illinois.edu/Downloads'],
-                'tarball':      ['online','%(www)s/zlib-1.3.1.tar.gz'],
+                'tarball':      ['online','%(www)s/zlib-1.3.2.tar.gz'],
                 'mandatory_dependencies': [],
                 'optional_dependencies' : [],
                 'libraries' : ['libz.%(libextension)s','libz.1.%(libextension)s',
-                               'libz.1.2.8.%(libextension)s'],
+                               'libz.1.3.2.%(libextension)s'],
                 'mandatory_files' : ['%s/include/zlib.h'%os.path.pardir,
                                      '%s/include/zconf.h'%os.path.pardir],
                 'install_path':  '%(prefix)s/zlib/'},
