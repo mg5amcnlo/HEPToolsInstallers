@@ -272,8 +272,9 @@ _HepTools = {'hepmc':
                 # Force to install this dependency if not found locally
                 'allow_system_wide': False,
                 'version':       '3.6',
-                'www': 'http://helac-phegas.web.cern.ch/helac-phegas/tar-files',
+                #'www': 'http://helac-phegas.web.cern.ch/helac-phegas/tar-files',
                 'tarball':      ['online','%(www)s/OneLOop-%(version)s.tgz'],
+                'www' : 'http://madgraph.phys.ucl.ac.be/Downloads/',
                 'mandatory_dependencies': [],
                 'optional_dependencies' : [],
                 'libraries' : ['libavh_olo.a'],
