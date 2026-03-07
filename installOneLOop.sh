@@ -27,7 +27,8 @@ run () {
 	cp *.mod $ONELOOPINSTALLD
     cd ..
     echo "Finished installing OneLOop"
-
+    cd $ONELOOPINSTALLD/../lib
+    ln -s $ONELOOPINSTALLD/libavh_olo.a
 }
 
 run "$@"
