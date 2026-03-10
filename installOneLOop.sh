@@ -28,7 +28,8 @@ run () {
     cd ..
     echo "Finished installing OneLOop"
     cd $ONELOOPINSTALLD/../lib
-    ln -fs $ONELOOPINSTALLD/libavh_olo.a libavh_olo.a
+    rm -f libavh_olo.a 
+    ln -s $ONELOOPINSTALLD/libavh_olo.a
 }
 
 run "$@"
