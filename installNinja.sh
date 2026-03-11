@@ -36,7 +36,8 @@ run () {
     ./bin/ninja-config --version > VERSION
     ./bin/ninja-config --version > Ninja/VERSION
     cd $NINJAINSTALLD/lib
-    #ln -s ../../lib/libavh_olo.a 
+    rm libavh_olo.a
+    ln -s ../../lib/libavh_olo.a 
     #ln -s ../../lib/libavh_olo.so 
     #ln -s ../../lib/libavh_olo.dylib
     echo "Finished installing Ninja"
