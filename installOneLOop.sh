@@ -27,6 +27,9 @@ run () {
 	cp *.mod $ONELOOPINSTALLD
     cd ..
     echo "Finished installing OneLOop"
+    if [ ! -e "$ONELOOPINSTALLD/../lib" ]; then
+        mkdir -p "$ONELOOPINSTALLD/../lib"
+    fi
     cd $ONELOOPINSTALLD/../lib
     rm -f libavh_olo.a 
     ln -s $ONELOOPINSTALLD/libavh_olo.a
