@@ -274,7 +274,7 @@ _HepTools = {'hepmc':
                 'version':       '3.6',
                 #'www': 'http://helac-phegas.web.cern.ch/helac-phegas/tar-files',
                 'tarball':      ['online','%(www)s/OneLOop-%(version)s.tgz'],
-                'www' : 'http://madgraph.phys.ucl.ac.be/Downloads/',
+                'www' : 'https://madgraph.mi.infn.it/Downloads/',
                 'mandatory_dependencies': [],
                 'optional_dependencies' : [],
                 'libraries' : ['libavh_olo.a'],
