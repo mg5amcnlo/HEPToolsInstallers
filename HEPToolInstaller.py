@@ -1273,8 +1273,13 @@ def install_madanalysis5(tmp_path):
        print('mv madanalysis5-%s madanalysis5' % _HepTools['madanalysis5']['version'])
        subprocess.call('mv madanalysis5-%s madanalysis5' % _HepTools['madanalysis5']['version']
                        , shell=True, cwd=_HepTools['madanalysis5']['install_path'])
+       import re
+       pattern = re.compile(r'\s*version\s*=\s*["\'](.*)["\']\s*')
+       path = os.path.join(_HepTools['madanalysis5']['install_path'], 'madanalysis5','bin', 'ma5')
+       text = open(path, 'r').read()
+       ma5_version = pattern.findall(text)[0]
        ff = open(os.path.join(_HepTools['madanalysis5']['install_path'],'madanalysis5', 'version.txt'),'w')
-       ff.write('MA5 version 1.9.60\n')
+       ff.write('MA5 version %s\n' % ma5_version)
        from datetime import date
        today = date.today()
        ff.write('Date %s\n' % today)
