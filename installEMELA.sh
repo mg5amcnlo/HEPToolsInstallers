@@ -19,6 +19,9 @@ run () {
     tar xvzf ${TARBALLPATH}
     echo "Enter EMELA directory and installing EMELA"
     cd eMELA-*
+    cp -r ./* ..
+    cd ..
+    rm -rf eMELA-*
     mkdir build
     cd build
     ${CMAKEPATH}/bin/cmake .. -DCMAKE_INSTALL_PREFIX=$INSTALLD -DWITH_LHAPDF=ON -DSHARED=OFF -DCMAKE_CXX_FLAGS="-L $LHAPDFPATH/lib/ -lLHAPDF -I $LHAPDFPATH/include -I $BOOSTPATH" #-DCMAKE_VERBOSE_MAKEFILE=ON
