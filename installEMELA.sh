@@ -31,6 +31,7 @@ run () {
     echo "Finished installing EMELA"
     echo "install grid"
     cd $INSTALLD
+    chmod +x bin/eMELA-config
     mkdir share
     mkdir share/eMELA/
     if ! command -v curl &> /dev/null
