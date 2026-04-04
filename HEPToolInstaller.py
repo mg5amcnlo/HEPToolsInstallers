@@ -952,7 +952,7 @@ def install_emela(tmp_path):
                      _HepTools['emela']['version'],
                      _HepTools['emela']['tarball'][1],
                      _HepTools['cmake']['install_path'],
-                     os.path.join(_HepTools['lhapdf6']['install_path'], 'lhapdf6_py3'),
+                     os.path.join(_HepTools['lhapdf6']['install_path']),
                      os.path.join(_HepTools['boost']['install_path'],boost_dir),
                      ],
                     stdout=log,
