@@ -238,7 +238,7 @@ _HepTools = {'hepmc':
                 # Not ideal since the MG server can be down quite often.
                 #'tarball':      ['online','http://madgraph.phys.ucl.ac.be/Downloads/zlib-1.2.10.tar.gz'],
                 # This legacy versions webpage should be more stable
-                'www' : ['http://www.zlib.net/','http://madgraph.phys.ucl.ac.be/Downloads/'],
+                'www' : ['http://www.zlib.net/','http://madgraph.phys.ucl.ac.be/Downloads/','https://madgraph.mi.infn.it/Downloads/'],
                 'tarball':      ['online','%(www)s/zlib-1.3.2.tar.gz'],
                 'mandatory_dependencies': [],
                 'optional_dependencies' : [],

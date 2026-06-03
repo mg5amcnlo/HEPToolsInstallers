@@ -67,7 +67,7 @@ run () {
                 echo "working"
             else
                 echo "use pip to install: pip install $module  --target=$LOCAL/python$PYVAR"
-                pip install $module  --target=$LOCAL/python$PYVAR --upgrade
+                python -m pip install  $module  --target=$LOCAL/python$PYVAR --upgrade
             fi
         done
     if [[ "${PYVAR}" == "3.14" ]]
