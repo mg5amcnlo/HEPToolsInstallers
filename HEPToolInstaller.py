@@ -44,7 +44,7 @@ _HepTools = {'hepmc':
                 # Force to install this dependency if not found locally
                 'allow_system_wide': False,
                 'version':       '2.06.09', #'2.07-beta00',
-                'www':'http://madgraph.phys.ucl.ac.be/Downloads',
+                'www':['http://madgraph.phys.ucl.ac.be/Downloads', 'https://madgraph.mi.infn.it/Downloads/'],
                 'tarball':      ['online','%(www)s/hepmc%(version)s.tgz'],
                 'mandatory_dependencies': [],
                 'optional_dependencies' : [],
@@ -64,9 +64,9 @@ _HepTools = {'hepmc':
              'boost':
                {'install_mode':'Default',
                 'version':       '1.74.0',
-                'www': 'http://sourceforge.net/projects/boost/files/boost/1.74.0', 
-#                'tarball':      ['online','%(www)s/boost_1_74_0.tar.gz'],
-                'tarball': ['online', 'madgraph.phys.ucl.ac.be/Downloads/boost_1_74_0.tar.gz'],
+                'www': ['http://sourceforge.net/projects/boost/files/boost/1.74.0', 'http://madgraph.phys.ucl.ac.be/Downloads/', 'https://madgraph.mi.infn.it/Downloads/'],
+                'tarball':      ['online','%(www)s/boost_1_74_0.tar.gz'],
+#                'tarball': ['online', 'madgraph.phys.ucl.ac.be/Downloads/boost_1_74_0.tar.gz'],
                 'mandatory_dependencies': [],
                 'optional_dependencies' : [],
                 'libraries' : ['libboost_system-mt.%(libextension)s','libboost_system.%(libextension)s'],
@@ -1568,21 +1568,28 @@ def finalize_installation(tool):
 def get_data(links):
     """ Pulls up a tarball from the web """
 
-    if not isinstance(links, list):
+    is_mirror_list = isinstance(links, list)
+    if not is_mirror_list:
        links = [links]
 
     for link in links:
        if sys.platform == "darwin":
           program = ["curl","-OL"]
+          if is_mirror_list:
+              program += ["--connect-timeout", "30", "--max-time", "300"]
        else:
           program = ["wget",'--no-check-certificate']
+          if is_mirror_list:
+              program += ["--timeout=30", "--tries=1"]
        logger.info("Fetching data with command:\n  %s %s", ' '.join(program), link)
        # Here shell=True is necessary. It is safe however since program and link are not
        returncode = subprocess.call(program+[link])
        if not returncode:
           return pjoin(os.getcwd(),os.path.basename(link))
-       else:
+       elif not is_mirror_list:
            raise Exception
+
+    raise Exception("Failed to download from all mirrors")
 
 # find a library in common paths 
 def which_lib(lib, tool=None):
