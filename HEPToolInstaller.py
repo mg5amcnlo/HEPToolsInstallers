@@ -281,9 +281,9 @@ _HepTools = {'hepmc':
                 'install_path':  '%(prefix)s/oneloop/'},
                'collier':
                {'install_mode':'Default',
-                'version':       '1.2.1',
+                'version':       '1.2.9',
                 'www' : 'http://collier.hepforge.org/',
-                'tarball':      ['online','%(www)s/collier-latest.tar.gz'],
+                'tarball':      ['online','%(www)s/downloads/collier-%(version)s.tar.gz'],
                 'mandatory_dependencies': ['cmake'],
                 'optional_dependencies' : [],
                 'libraries' : ['libcollier.%(libextension)s'],
