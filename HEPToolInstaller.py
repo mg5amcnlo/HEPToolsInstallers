@@ -545,10 +545,10 @@ def adapt_tarball_paths_according_to_MG5_version(MG5_version):
             for key in tool_options:
                 _HepTools['lhapdf6'][key] = _HepTools['lhapdf61'][key]
         if  'MG5_specific' == _HepTools[tool_name]['tarball'][1]:
-            import urllib.request as request
-            import six
+            from urllib.request import urlopen
+
             try:
-                data = six.moves.urllib.request.urlopen(_HepTools[tool_name]['www'])
+                data = urlopen(_HepTools[tool_name]['www'])
             except Exception as error:
                 _HepTools[tool_name]['tarball'] = ['online', str(error)]
                 continue
