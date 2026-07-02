@@ -172,7 +172,7 @@ _HepTools = {'hepmc':
                 'install_path':  '%(prefix)s/rosetta/'},
              'pythia8_hepmc3':
                {'install_mode':'Default',
-                'version':       '8316',
+                'version':       '8317',
                 'www': 'https://pythia.org/download/pythia83',
 # Official version
                 'tarball':      ['online','%(www)s/pythia%(version)s.tgz'],
@@ -311,9 +311,9 @@ _HepTools = {'hepmc':
                },
                'cmake':
                {'install_mode':'Default',
-                'version':       '3.6.0',
-                'www': 'http://cmake.org/files/v3.6',
-                'tarball':      ['online','%(www)s/cmake-3.6.0-rc2.tar.gz'],
+                'version':       '4.3.4',
+                'www': 'https://github.com/Kitware/CMake/',
+                'tarball':      ['online','%(www)s/releases/download/v%(version)s/cmake-%(version)s.tar.gz'],
                 'mandatory_dependencies': [],
                 'optional_dependencies' : [],
                 'libraries' : ['cmake'],
