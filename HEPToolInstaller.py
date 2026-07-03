@@ -187,7 +187,7 @@ _HepTools = {'hepmc':
                 'install_path':  '%(prefix)s/pythia8/'}, 
              'pythia8':
                {'install_mode':'Default',
-                'version':       '8316',
+                'version':       '8317',
                 'www': 'https://pythia.org/download/pythia83',
 # Official version
                 'tarball':      ['online','%(www)s/pythia%(version)s.tgz'],
