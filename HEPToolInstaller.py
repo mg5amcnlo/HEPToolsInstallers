@@ -173,7 +173,7 @@ _HepTools = {'hepmc':
              'pythia8_hepmc3':
                {'install_mode':'Default',
                 'version':       '8317',
-                'www': 'https://pythia.org/download/pythia83',
+                'www': 'https://pythia.org/releases/pythia83',
 # Official version
                 'tarball':      ['online','%(www)s/pythia%(version)s.tgz'],
 # Development version
@@ -188,7 +188,7 @@ _HepTools = {'hepmc':
              'pythia8':
                {'install_mode':'Default',
                 'version':       '8317',
-                'www': 'https://pythia.org/download/pythia83',
+                'www': 'https://pythia.org/releases/pythia83',
 # Official version
                 'tarball':      ['online','%(www)s/pythia%(version)s.tgz'],
 # Development version
