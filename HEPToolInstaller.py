@@ -1808,7 +1808,8 @@ def check_successful_installation(target):
     
     # Special check for MadAnalysis installation
     if target=='madanalysis5':
-        return 'INSTALLATION STATUS: SUCCESS' in open(pjoin(_HepTools['madanalysis5']['install_path'],'madanalysis5_install.log'),'r').readlines()[-1]
+        with open(pjoin(_HepTools['madanalysis5']['install_path'], 'madanalysis5_install.log'), 'r') as stream:
+            return any('INSTALLATION STATUS: SUCCESS' in line for line in stream)
     if target=='rosetta':
        import sys
        sys.path.append(pjoin(_HepTools[target]['install_path']))
