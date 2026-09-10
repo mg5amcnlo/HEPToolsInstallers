@@ -296,7 +296,7 @@ _HepTools = {'hepmc':
                 'tarball':      ['online','https://github.com/MadAnalysis/madanalysis5/archive/refs/tags/v%(version)s.tar.gz'],
                 # Specify a different tarball for MG version before 2.6.1
                 'MG5_version_constraints' : [
-                    ( lambda MG5version: MG5version < LooseVersion("2.6.1"),
+                    ( lambda MG5version: MG5version < LooseVersion("5.2.6.1"),
                        ['online','%(www)s/ma5_v_1_6_21.tgz'] ),
                     ( lambda MG5version: PY3,
                        ['online','https://github.com/MadAnalysis/madanalysis5/archive/refs/tags/v%(version)s.tar.gz']),
@@ -374,6 +374,8 @@ _HepTools = {'hepmc':
                 'version': 'TEST_cudacpp_for%(_mg5_version)s_latest',
                 'www': 'http://madgraph.phys.ucl.ac.be/Downloads/cudacpp/info.dat',
                 'tarball': ['online','MG5_specific'],
+                # cudacpp is an mg5amcnlo-only tool, madgraph7 must not install it
+                'supported_mg5_generations': ['5'],
                 ###'www': 'https://github.com/valassi/madgraph4gpu/releases',
                 ###'tarball': ['online','%(www)s/download/%(version)s/cudacpp.tar.gz'],
                 'mandatory_dependencies': [],
@@ -426,7 +428,13 @@ _prefix          = pjoin(_cwd,'HEPTools')
 _overwrite_existing_installation = False
 # MG5 path, can be used for the installation of mg5amc_py8_interface
 _mg5_path        = None
+# _mg5_version is the *generation-prefixed* version (see get_mg5_version), so that
+# mg5amcnlo and madgraph7 versions live in a single, comparable numbering scheme.
 _mg5_version     = None
+# _mg5_raw_version is the version exactly as written in the VERSION file
+_mg5_raw_version = None
+# _mg5_generation is the generation digit returned by get_mg5_generation
+_mg5_generation  = None
 _cpp_standard_lib= '-lstdc++'
 _keep_source     = False
 _keep_existing_installation = False
@@ -527,6 +535,77 @@ def with_option_parser(with_option):
         return with_option
 
 
+# Generation of MadGraph identified by the launcher present in the MG installation.
+# The associated digit is prepended to the version number read from the VERSION file
+# so that all generations share a single, monotonically increasing numbering scheme
+# (mg5amcnlo 3.6.7 -> 5.3.6.7, madgraph7 0.2.0 -> 7.0.2.0).
+_mg5_generation_launchers = [('7', pjoin('bin','madgraph')),
+                             ('5', pjoin('bin','mg5_aMC')),
+                             ('5', pjoin('bin','mg5'))]
+_mg5_generation_names = {'5':'mg5amcnlo', '7':'madgraph7'}
+# Generation assumed for an installation in which none of the launchers above is found,
+# and for the (generation-less) version numbers advertised by the MG5 download servers.
+_default_mg5_generation = '5'
+
+def get_mg5_generation(mg5_path):
+    """ Return the generation ('5' for mg5amcnlo, '7' for madgraph7) of the MadGraph
+        installation sitting in mg5_path, based on which launcher it provides."""
+
+    for generation, launcher in _mg5_generation_launchers:
+        if os.path.isfile(pjoin(mg5_path, launcher)):
+            return generation
+    logger.warning("Could not identify the MadGraph generation of '%s', assuming %s.",
+                                                 mg5_path, _default_mg5_generation)
+    return _default_mg5_generation
+
+def get_mg5_version(mg5_path, generation=None):
+    """ Return the (generation_prefixed_version, raw_version) of the MadGraph
+        installation sitting in mg5_path, or (None, None) if it cannot be determined.
+        The prefixed version is what all the version constraints below compare against,
+        so that e.g. mg5amcnlo 3.6.7 (-> 5.3.6.7) always sorts below madgraph7 0.2.0
+        (-> 7.0.2.0) no matter how the two numbering schemes evolve."""
+
+    if generation is None:
+        generation = get_mg5_generation(mg5_path)
+
+    raw_version = None
+    try:
+        for line in open(pjoin(mg5_path,'VERSION'),'r').read().split('\n'):
+            if line.startswith('version ='):
+                out = re.findall(r'version\s*=\s*([\.\d]*)', line)
+                if out[0].endswith('.'):
+                    out[0] = out[0][:-1]
+                raw_version = out[0]
+                break
+    except Exception:
+        logger.warning("Could not read the version of the MadGraph installation in '%s'.", mg5_path)
+        return None, None
+    if raw_version is None:
+        return None, None
+
+    return (LooseVersion('%s.%s'%(generation, raw_version)), LooseVersion(raw_version))
+
+def check_mg5_generation_support(tool, generation):
+    """ Abort if 'tool' is not meant to be installed alongside that generation of MadGraph."""
+
+    supported = _HepTools[tool].get('supported_mg5_generations', None)
+    if supported is None or generation in supported:
+        return
+    logger.error("HEPToolsInstaller.py: '%s' cannot be installed for %s, it is only supported for %s.",
+                 tool, _mg5_generation_names.get(generation, 'MadGraph generation %s'%generation),
+                 ' and '.join(_mg5_generation_names.get(g, g) for g in supported))
+    sys.exit(9)
+
+def get_mg5_version_key(version, n_digits=4):
+    """ Turn a version into a tuple of n_digits integers usable for comparison.
+        Versions which do not carry a generation prefix (typically the ones advertised
+        by the MG5 download servers) are assumed to belong to _default_mg5_generation."""
+
+    digits = str(version).split('.')
+    if len(digits) < n_digits:
+        digits = [_default_mg5_generation] + digits
+    return tuple(int(d) for d in digits[:n_digits])
+
 def adapt_tarball_paths_according_to_MG5_version(MG5_version):
     """ Adapt paths of certain dependencies depending on MG5aMC version."""
 
@@ -541,7 +620,7 @@ def adapt_tarball_paths_according_to_MG5_version(MG5_version):
                     tool_options['tarball'] = tarball_specifier
                     break
         # install lhapdf62 for newer version of MG5aMC
-        if tool_name in ['lhapdf6', 'lhapdf'] and MG5_version and MG5_version < LooseVersion("2.6.1"):
+        if tool_name in ['lhapdf6', 'lhapdf'] and MG5_version and MG5_version < LooseVersion("5.2.6.1"):
             for key in tool_options:
                 _HepTools['lhapdf6'][key] = _HepTools['lhapdf61'][key]
         if  'MG5_specific' == _HepTools[tool_name]['tarball'][1]:
@@ -556,8 +635,7 @@ def adapt_tarball_paths_according_to_MG5_version(MG5_version):
             for line in data:
                 line = line.decode()
                 version, html = line.split(maxsplit=1)
-                major, medium, minor = [int(i) for i in version.split('.')[:3]]
-                struct[(major, medium, minor)] = html
+                struct[get_mg5_version_key(version)] = html
 
             # Find compatible tarball
             try:
@@ -568,34 +646,23 @@ def adapt_tarball_paths_according_to_MG5_version(MG5_version):
 
 
 def find_compatible_tarball(database, MG5_version):
-    """ struct is a database of the form (major, medium, minor) -> something (typically html link)
-        this function 
-        The rule is to find the version A.B.C with a lower (or equal) numbering 
-        present in the datastructure
-        Only version with A.B.C version are handle (pure digit)
-        A.B.C.D are working but all .D are just ignored below and therefore treated as A.B.C
+    """ database is of the form (generation, major, medium, minor) -> something
+        (typically an html link), as built by get_mg5_version_key.
+        The rule is to pick the entry with the highest numbering that is still lower
+        than (or equal to) MG5_version. Entries advertised without a generation prefix
+        are understood as belonging to _default_mg5_generation, so that a madgraph7
+        installation falls back on the latest mg5amcnlo tarball until madgraph7 ones
+        are published.
+        Only versions made of pure digits are handled, and any digit beyond the fourth
+        one is ignored (i.e. A.B.C.D.E is treated as A.B.C.D).
     """
 
-    MG5_major, MG5_medium, MG5_minor = [int(i) for i in str(MG5_version).split('.')[:3]] 
-    for major in range(MG5_major, -1, -1):
-        # find the rang of allowed value for the second index
-        if major == MG5_major:
-            max_medium = MG5_medium
-        else:
-            max_medium = max([v2 for (v1, v2, v3) in database if v1 == major], default=-1)
+    MG5_key = get_mg5_version_key(MG5_version)
+    compatible = [key for key in database if key <= MG5_key]
+    if not compatible:
+        raise Exception("No compatible data detected")
 
-        for medium in range(max_medium, -1, -1):
-            # find the rang of allowed value for the third index
-            if major == MG5_major and medium == MG5_medium:
-                max_minor = MG5_minor
-            else:
-                max_minor = max([v3 for (v1, v2, v3) in database if v1 == major and v2 == medium], default=-1)
-
-            for minor in range(max_minor, -1, -1):
-                if (major, medium, minor) in database:
-                    return database[(major, medium, minor)].strip() 
-                
-    raise Exception("No compatible data detected")          
+    return database[max(compatible)].strip()
 
 if '__main__' == __name__:
     _version = None
@@ -641,18 +708,8 @@ if '__main__' == __name__:
         elif option=='--mg5_path':
             _mg5_path = value
             # Try to gather MG5_version
-            try:
-                _mg5_version = None
-                for line in open(pjoin(_mg5_path,'VERSION'),'r').read().split('\n'):
-                    if line.startswith('version ='):
-                        out = re.findall(r'version\s*=\s*([\.\d]*)', line)
-                        if out[0].endswith('.'):
-                            out[0] = out[0][:-1]
-                        _mg5_version = LooseVersion(out[0])
-                        break
-            except:
-                raise
-                _mg5_version = None
+            _mg5_generation = get_mg5_generation(_mg5_path)
+            _mg5_version, _mg5_raw_version = get_mg5_version(_mg5_path, _mg5_generation)
         elif option.startswith('--with_'):
             dependency_name = _dependency_names_map[option[7:]] if option[7:] in _dependency_names_map else option[7:]
             
@@ -688,6 +745,10 @@ if '__main__' == __name__:
            _version = value
 
 
+    # Refuse tools that are not supported by this generation of MadGraph
+    if _mg5_generation:
+        check_mg5_generation_support(target_tool, _mg5_generation)
+
     # Adapt paths according to MG5 version specified
     if _mg5_version:
         adapt_tarball_paths_according_to_MG5_version(_mg5_version)
@@ -713,7 +774,7 @@ if '__main__' == __name__:
 
         if _HepTools[tool]['tarball'][0]=='online':
            version = _HepTools[tool]['version']
-           if _mg5_version and '%(_mg5_version)s' in version: version = version % {'_mg5_version' : str(_mg5_version)}
+           if _mg5_raw_version and '%(_mg5_version)s' in version: version = version % {'_mg5_version' : str(_mg5_raw_version)}
            if 'format_version' in _HepTools[tool]:
               version = _HepTools[tool]['format_version'](version)
            if not _force_local_server:
@@ -922,9 +983,9 @@ def install_collier(tmp_path):
             break
 
     # check if we want to generate dynamic libraries or not
-    if LooseVersion("3.5.13") <= _mg5_version < LooseVersion("3.6.0"):
+    if LooseVersion("5.3.5.13") <= _mg5_version < LooseVersion("5.3.6.0"):
         dylib = 'ON'
-    elif LooseVersion("3.6.7") <= _mg5_version:
+    elif LooseVersion("5.3.6.7") <= _mg5_version:
         dylib = 'ON'
     else:
         dylib = 'OFF'
@@ -1003,9 +1064,9 @@ def install_ninja(tmp_path):
             cxx_flags.append(flag)
 
     # check if we want to generate dynamic libraries or not
-    if LooseVersion("3.5.13") <= _mg5_version < LooseVersion("3.6.0"):
+    if LooseVersion("5.3.5.13") <= _mg5_version < LooseVersion("5.3.6.0"):
         dylib = 'ON'
-    elif LooseVersion("3.6.7") <= _mg5_version:
+    elif LooseVersion("5.3.6.7") <= _mg5_version:
         dylib = 'ON'
     else:
         dylib = 'OFF'
@@ -1535,9 +1596,9 @@ def finalize_installation(tool):
 
     # Force static linking for pythia8/ninja
     if tool in ['pythia8', 'ninja']:
-        if LooseVersion("3.5.13") <= _mg5_version < LooseVersion("3.6.0"):
+        if LooseVersion("5.3.5.13") <= _mg5_version < LooseVersion("5.3.6.0"):
             dylib = 'ON'
-        elif LooseVersion("3.6.7") <= _mg5_version:
+        elif LooseVersion("5.3.6.7") <= _mg5_version:
             dylib = 'ON'
         else:
             dylib = 'OFF'
