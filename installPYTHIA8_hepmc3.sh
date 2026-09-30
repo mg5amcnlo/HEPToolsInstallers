@@ -57,7 +57,16 @@ run () {
 
 #  echo " Compile PYTHIA8 examples"
   cd $INSTALLPATH/share/Pythia8/examples
-  make main164
+  echo "# Optional HDF5, HEPMC3, and RIVET." >> Makefile
+  echo "mainMG: \$(PYTHIA) main164.cc" >> Makefile
+  echo -e "\t\$(CXX) main164.cc -o main164 \$(if \$(filter true,\$(HDF5_USE)),\$(HDF5_OPTS))\\" >> Makefile
+  echo -e "\t\$(if \$(filter true,\$(HEPMC3_USE)),\$(HEPMC3_OPTS))\\" >> Makefile
+  echo -e "\t\$(if \$(filter true,\$(HEPMC2_USE)),\$(HEPMC2_OPTS))\\" >> Makefile
+  echo -e "\t\$(if \$(filter true,\$(RIVET_USE)),-w \$(RIVET_OPTS),\$(CXX_COMMON))" >> Makefile
+  # A failure here does not abort the installation, HEPToolInstaller.py reports a missing main164
+  if ! make mainMG; then
+      echo " >> WARNING: Compilation of the PYTHIA8 example main164 (make mainMG) failed"
+  fi
 #  ls -1 main*.cc | while read line
 #  do
 #    make "$(echo "$line" | sed "s,\.cc,,g")"  

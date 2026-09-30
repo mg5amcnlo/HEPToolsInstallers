@@ -253,6 +253,10 @@ _HepTools = {'hepmc':
                 'www': '',
 #                'tarball':      ['online','http://madgraph.phys.ucl.ac.be/Downloads/MG5aMC_PY8_interface.tar.gz'],
                 'tarball':      ['online','TO_BE_DEFINED_BY_INSTALLER'],
+                # madgraph7 dropped this interface: its LO showers run Pythia8's own main164
+                'supported_mg5_generations': ['5'],
+                'unsupported_mg5_generation_hint': "madgraph7 showers events with Pythia8's own "+\
+                    "main164 program instead, which 'install pythia8' builds.",
                 'mandatory_dependencies': ['pythia8'],
                 'optional_dependencies' : [],
                 'libraries' : ['MG5aMC_PY8_interface'],
@@ -594,6 +598,8 @@ def check_mg5_generation_support(tool, generation):
     logger.error("HEPToolsInstaller.py: '%s' cannot be installed for %s, it is only supported for %s.",
                  tool, _mg5_generation_names.get(generation, 'MadGraph generation %s'%generation),
                  ' and '.join(_mg5_generation_names.get(g, g) for g in supported))
+    if 'unsupported_mg5_generation_hint' in _HepTools[tool]:
+        logger.error("HEPToolsInstaller.py: %s", _HepTools[tool]['unsupported_mg5_generation_hint'])
     sys.exit(9)
 
 def get_mg5_version_key(version, n_digits=4):
@@ -1623,6 +1629,31 @@ def finalize_installation(tool):
             os.remove(pjoin(_prefix,'lib',os.path.basename(path)))
         os.symlink(os.path.relpath(path,pjoin(_prefix,'lib')),
                                pjoin(_prefix,'lib',os.path.basename(path)))
+
+    if tool in ['pythia8', 'pythia8_hepmc3']:
+        check_pythia8_main164(tool)
+
+def check_pythia8_main164(tool):
+    """ Warn loudly if the main164 example program of Pythia8, which MadGraph runs to shower
+    LO events, was not built. This is not fatal: libpythia8 is usable on its own (aMC@NLO builds
+    its own Pythia8 driver), madgraph7 recompiles main164 when it is missing and mg5amcnlo falls
+    back on the MG5aMC_PY8_interface."""
+
+    examples_path = pjoin(_HepTools[tool]['install_path'],'share','Pythia8','examples')
+    main164 = pjoin(examples_path,'main164')
+    if os.path.isfile(main164) and os.access(main164, os.X_OK):
+        logger.debug("Pythia8 example program main164 built at '%s'.", main164)
+        return True
+    logger.warning(r"|| /!\/!\/!\ ")
+    logger.warning("|| Pythia8 is installed but its example program main164 could not be built:")
+    logger.warning("||   '%s' is missing or not executable.", main164)
+    logger.warning("|| MadGraph needs main164 to shower LO events with Pythia8. madgraph7 will try to")
+    logger.warning("|| compile it again when running the shower, mg5amcnlo will use the MG5aMC_PY8_interface.")
+    logger.warning("|| To see why the compilation failed, rerun it by hand with:")
+    logger.warning("||   cd %s && make mainMG", examples_path)
+    logger.warning("|| The installation log is '%s'.", pjoin(_HepTools[tool]['install_path'],'pythia8_install.log'))
+    logger.warning(r"|| /!\/!\/!\ ")
+    return False
 
 #==================================================================================================
 

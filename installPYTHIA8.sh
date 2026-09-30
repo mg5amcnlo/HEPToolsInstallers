@@ -63,7 +63,10 @@ run () {
   echo -e "\t\$(if \$(filter true,\$(HEPMC3_USE)),\$(HEPMC3_OPTS))\\" >> Makefile
   echo -e "\t\$(if \$(filter true,\$(HEPMC2_USE)),\$(HEPMC2_OPTS))\\" >> Makefile
   echo -e "\t\$(if \$(filter true,\$(RIVET_USE)),-w \$(RIVET_OPTS),\$(CXX_COMMON))" >> Makefile
-   make mainMG
+  # A failure here does not abort the installation, HEPToolInstaller.py reports a missing main164
+  if ! make mainMG; then
+      echo " >> WARNING: Compilation of the PYTHIA8 example main164 (make mainMG) failed"
+  fi
 #  ls -1 main*.cc | while read line
 #  do
 #    make "$(echo "$line" | sed "s,\.cc,,g")"  
