@@ -299,14 +299,11 @@ _HepTools = {'hepmc':
                'ninjars':
                {'install_mode':'Default',
                 'version':       '0.1.0',
-                # OPEN QUESTION: the hosting place of the bridge tarball is not decided yet
-                # (alphal00p/ninjars release asset or the madgraph.mi.infn.it mirror).
-                # Until it is, the installer refuses this placeholder and asks for
-                # --ninjars_tarball=<path>. Replace 'www' (and fill 'sha256') once published.
-                'www': 'PLACEHOLDER_NINJARS_TARBALL_HOST',
+                # Immutable, separately versioned MadLoop bridge source release.
+                'www': 'https://github.com/alphal00p/ninjars/releases/download/madloop-bridge-v0.1.0',
                 'tarball':      ['online','%(www)s/madloop-ninjars-%(version)s.tar.gz'],
                 # sha256 of the official tarball above; checked unless --ninjars_tarball is used.
-                'sha256': None,
+                'sha256': '17ea84875f241c8e56c7ae814f113505fab62d973530e0461a010ef53c7ac7e5',
                 # MadGraph7 only (the MadLoop NinjaRS backend does not exist in mg5amcnlo)
                 'supported_mg5_generations': ['7'],
                 # Minimal Rust toolchain, from the 'rust-version' field of the bridge Cargo.toml
@@ -695,15 +692,29 @@ def check_ninjars_prerequisites():
     # Other build tools: make for the bridge, a C compiler for its build.rs and for GMP/MPFR
     # (built from source by the gmp-mpfr-sys crate, which also needs m4).
     c_compiler = (os.environ.get('CC') or 'cc').split()[0]
-    for program in ['make', c_compiler, 'm4']:
+    for program in ['make', c_compiler, 'm4', 'bash']:
         if not find_executable(program):
             problems.append("'%s' was not found in PATH, but it is needed to build ninjars."%program)
 
-    # Tarball: the official location is not decided yet.
-    if 'ninjars' not in _tarballs_specified and \
-                     'PLACEHOLDER' in str(_HepTools['ninjars']['www']):
-        problems.append("No official ninjars tarball is published yet; specify one with "
-                        "--ninjars_tarball=<path or URL to madloop-ninjars-<version>.tar.gz>.")
+    if 'ninjars' not in _tarballs_specified and not re.match(
+            r'^[0-9a-f]{64}$', _HepTools['ninjars']['sha256'] or ''):
+        problems.append("The NinjaRS release has no valid SHA256 pin; use an explicit "
+                        "--ninjars_tarball=<path or URL> for an intentional developer override.")
+
+    # Common aliases are the configured MG7 library path. Mixing old regular
+    # files with new metadata would silently expose a different installation.
+    for directory, names in [
+            ('lib', ['libninjars.a', 'mninjars.mod', 'ninjars-config.json',
+                     'ninjars-native-libs.txt', 'ninjars-link-before.txt']),
+            ('include', ['ninjars.h', 'mninjars.f90'])]:
+        parent = pjoin(_prefix, directory)
+        if os.path.lexists(parent) and not os.path.isdir(parent):
+            problems.append("NinjaRS cannot publish aliases: '%s' is not a directory." % parent)
+        for name in names:
+            alias = pjoin(parent, name)
+            if os.path.lexists(alias) and not os.path.islink(alias):
+                problems.append("NinjaRS preserves existing regular files: move '%s' "
+                                "before installing to this prefix." % alias)
 
     return problems
 
@@ -930,8 +941,11 @@ if '__main__' == __name__:
                   logger.warning( "Rerun the HEPToolInstaller.py script again with the option '--force' if you want to overwrite it.")
                   sys.exit(66)
                else:
-                  logger.info("Removing existing installation of tool '%s' in '%s'.", target_tool, _prefix)
-                  shutil.rmtree(pjoin(_prefix,target_tool))
+                  if target_tool != 'ninjars':
+                      logger.info("Removing existing installation of tool '%s' in '%s'.", target_tool, _prefix)
+                      shutil.rmtree(pjoin(_prefix,target_tool))
+                  else:
+                      logger.info('NinjaRS will replace this installation only after validation.')
     else:
        _keep_existing_installation = False
 
@@ -1277,7 +1291,7 @@ def check_ninjars_installation(libdir):
             problems.append("Cannot read '%s': %s"%(pjoin(libdir, filename), error))
     return problems
 
-def install_ninjars(tmp_path):
+def _build_ninjars(tmp_path):
     """Installation operations for the MadLoop NinjaRS bridge (libninjars.a)"""
     import json, shlex
 
@@ -1290,18 +1304,18 @@ def install_ninjars(tmp_path):
         ninjars_log.write(message+'\n')
         ninjars_log.flush()
 
-    notice = ("NOTE: the quad-precision rescue of NinjaRS relies on Symbolica, whose licence "
-              "restricts how many threads/instances may run concurrently without a Symbolica "
-              "licence. Check https://symbolica.io before running many MadLoop jobs in "
-              "parallel on one machine.")
-    logger.warning(notice)
+    notice = ("NOTE: this NinjaRS release includes a scoped Symbolica OEM library license. "
+              "Covered MadLoop operations, including oneloopmaster and high-precision rescue, "
+              "need no personal Symbolica key while that library license is valid. "
+              "It does not authorize unrelated Symbolica work or change SYMBOLICA_LICENSE.")
+    logger.info(notice)
     log(notice)
     log("NOTE: the NinjaRS bridge is currently only supported on Linux with GNU Fortran.")
 
     # Check the integrity of the official tarball (a user-specified tarball is trusted)
     tarball_sha256 = file_sha256(tarball)
     log("Tarball '%s' has sha256 %s"%(tarball, tarball_sha256))
-    if 'ninjars' not in _tarballs_specified and tool['sha256'] and tool['sha256'] != tarball_sha256:
+    if 'ninjars' not in _tarballs_specified and tool['sha256'] != tarball_sha256:
         log("ERROR: sha256 mismatch, the expected value for version %s is %s."%(
                                                                 tool['version'], tool['sha256']))
         ninjars_log.close()
@@ -1320,7 +1334,7 @@ def install_ninjars(tmp_path):
     log("Running %s"%pjoin(_installers_path,'installNINJARS.sh'))
     ninjars_log.flush()
     p = subprocess.call([pjoin(_installers_path,'installNINJARS.sh'),
-                         install_path, tarball, _gfortran, tmp_path],
+                         install_path, tarball, _gfortran, tmp_path, str(tool['abi_version'])],
                         stdout=ninjars_log, stderr=ninjars_log, env=my_env)
     if p != 0:
         log("ERROR: installNINJARS.sh failed with return code %s."%p)
@@ -1363,6 +1377,125 @@ def install_ninjars(tmp_path):
         log("Finished installing ninjars")
     ninjars_log.close()
     return 1 if problems else 0
+
+def _publish_ninjars(installed, destination, stage, prefix):
+    """Publish a validated NinjaRS tree and its aliases, restoring on failure.
+
+    Adapted from MadGraph7's NinjaRS installer transaction. Alias staging lives
+    beside each alias group so prefix/lib and prefix/include may be symlinks or
+    separate mounts. Regular user files are never overwritten.
+    """
+    from pathlib import Path
+
+    installed, destination, stage, prefix = map(Path, (installed, destination, stage, prefix))
+    backup = stage / 'previous'
+    alias_stages, created_directories, planned, changed = [], [], [], []
+    published = False
+    try:
+        for directory, names in [('lib', _ninjars_lib_files),
+                                 ('include', ['ninjars.h', 'mninjars.f90'])]:
+            common = prefix / directory
+            existed = common.exists() or common.is_symlink()
+            common.mkdir(exist_ok=True)
+            if not existed:
+                created_directories.append(common)
+            aliases = Path(tempfile.mkdtemp(prefix='.ninjars-links-', dir=str(common)))
+            alias_stages.append(aliases)
+            saved, fresh = aliases / 'previous', aliases / 'new'
+            saved.mkdir()
+            fresh.mkdir()
+            for name in names:
+                link = common / name
+                if not link.is_symlink() and link.exists():
+                    raise OSError('NinjaRS will not overwrite existing user file: %s' % link)
+                previous = None
+                if link.is_symlink():
+                    previous = saved / name
+                    previous.symlink_to(os.readlink(str(link)))
+                temporary = fresh / name
+                temporary.symlink_to(os.path.relpath(str(destination / directory / name),
+                                                    str(common.resolve())))
+                planned.append((link, previous, temporary))
+
+        if destination.exists() or destination.is_symlink():
+            os.replace(str(destination), str(backup))
+        os.replace(str(installed), str(destination))
+        published = True
+        for link, previous, temporary in planned:
+            # Journal before the atomic operation, including cancellation just
+            # after replacement but before the next Python instruction.
+            changed.append((link, previous, temporary))
+            os.replace(str(temporary), str(link))
+    except BaseException as error:
+        failures = []
+        for link, previous, temporary in reversed(changed):
+            if temporary.is_symlink():
+                continue
+            try:
+                if previous is None:
+                    link.unlink()
+                else:
+                    os.replace(str(previous), str(link))
+            except OSError as restore_error:
+                failures.append('%s: %s' % (link, restore_error))
+        if published or not installed.exists():
+            try:
+                os.replace(str(destination), str(installed))
+            except OSError as restore_error:
+                failures.append('%s: %s' % (destination, restore_error))
+        if backup.exists() or backup.is_symlink():
+            try:
+                os.replace(str(backup), str(destination))
+            except OSError as restore_error:
+                failures.append('%s: %s' % (destination, restore_error))
+        if not failures:
+            for aliases in reversed(alias_stages):
+                try:
+                    shutil.rmtree(str(aliases))
+                except OSError as restore_error:
+                    failures.append('%s: %s' % (aliases, restore_error))
+            if not failures:
+                for common in reversed(created_directories):
+                    try:
+                        common.rmdir()
+                    except OSError as restore_error:
+                        failures.append('%s: %s' % (common, restore_error))
+        if failures:
+            raise RuntimeError('NinjaRS publication failed (%s); rollback failed for %s. '
+                               'Recovery files retained in %s and %s.' %
+                               (error, '; '.join(failures), stage, alias_stages))
+        raise
+    return alias_stages
+
+
+def install_ninjars(tmp_path):
+    """Build and test in a sibling tree, then replace the working installation."""
+    tool = _HepTools['ninjars']
+    destination = tool['install_path']
+    stage = tempfile.mkdtemp(prefix='.ninjars-install-', dir=_prefix)
+    installed = pjoin(stage, 'install')
+    os.mkdir(installed)
+    tool['install_path'] = installed
+    logger.info('    > Staged NinjaRS build log: %s', pjoin(installed, 'ninjars_install.log'))
+    try:
+        status = _build_ninjars(tmp_path)
+        if status:
+            logger.error('NinjaRS installation failed; previous installation and aliases '
+                         'are unchanged. Build log retained in %s.', installed)
+            return status
+        aliases = _publish_ninjars(installed, destination, stage, _prefix)
+    finally:
+        tool['install_path'] = destination
+    # Publication is complete. A cleanup error must not roll back a successful
+    # installation after part of its old tree has already been removed.
+    for temporary in aliases + [stage]:
+        try:
+            shutil.rmtree(str(temporary))
+        except OSError as error:
+            logger.warning('NinjaRS is installed but staging cleanup failed at %s: %s',
+                           temporary, error)
+    return 0
+
 
 def install_lhapdf6(tmp_path):
     """Installation operations for lhapdf6"""
@@ -1843,6 +1976,11 @@ def finalize_installation(tool):
     """ Finalize the installation of the tool specified by copying all its libraries and executable
     files inside the corresponding lib and bin directories of HEPTools """
     
+    # NinjaRS publishes its library and include aliases in one rollback-capable
+    # transaction after the build and smoke test. Do not replace them again here.
+    if tool == 'ninjars':
+        return
+
     # Create the necessary directories if they do not exist yet
     if not os.path.exists(pjoin(_prefix,'bin')):
         os.mkdir(pjoin(_prefix,'bin'))
@@ -1880,7 +2018,7 @@ def finalize_installation(tool):
 
     # Force static linking for pythia8/ninja/ninjars
     if tool in ['pythia8', 'ninja', 'ninjars']:
-        if tool != 'ninja':
+        if tool == 'ninjars':
             dylib = 'OFF'
         elif LooseVersion("5.3.5.13") <= _mg5_version < LooseVersion("5.3.6.0"):
             dylib = 'ON'
@@ -2233,7 +2371,7 @@ def install_with_dependencies(target,is_main_target=False):
                 sys.exit(9)
             _HepTools[target]['tarball'] = ('local',tarball_path)
 
-        if not os.path.isdir(_HepTools[target]['install_path']):
+        if target != 'ninjars' and not os.path.isdir(_HepTools[target]['install_path']):
             os.mkdir(_HepTools[target]['install_path'])
         logger.info("Installing tool '%s'...", target)
         logger.info("    > Follow the installation progress by running the command below in a separate terminal)")
