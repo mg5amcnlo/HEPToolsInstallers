@@ -292,6 +292,31 @@ _HepTools = {'hepmc':
                 'optional_dependencies' : [],
                 'libraries' : ['libcollier.%(libextension)s'],
                 'install_path':  '%(prefix)s/collier/'},
+               # MadLoop Fortran bridge to the NinjaRS reduction library (MLReductionLib=8).
+               # The bridge is a Rust staticlib: Cargo fetches the pinned NinjaRS,
+               # oneloopmaster and Symbolica revisions recorded in its Cargo.lock, so there
+               # is no dependency on the 'oneloop' tool here.
+               'ninjars':
+               {'install_mode':'Default',
+                'version':       '0.1.0',
+                # OPEN QUESTION: the hosting place of the bridge tarball is not decided yet
+                # (alphal00p/ninjars release asset or the madgraph.mi.infn.it mirror).
+                # Until it is, the installer refuses this placeholder and asks for
+                # --ninjars_tarball=<path>. Replace 'www' (and fill 'sha256') once published.
+                'www': 'PLACEHOLDER_NINJARS_TARBALL_HOST',
+                'tarball':      ['online','%(www)s/madloop-ninjars-%(version)s.tar.gz'],
+                # sha256 of the official tarball above; checked unless --ninjars_tarball is used.
+                'sha256': None,
+                # MadGraph7 only (the MadLoop NinjaRS backend does not exist in mg5amcnlo)
+                'supported_mg5_generations': ['7'],
+                # Minimal Rust toolchain, from the 'rust-version' field of the bridge Cargo.toml
+                'min_rust_version': '1.96',
+                # Must match ABI_VERSION in MadGraph7's madgraph/various/ninjars_install.py
+                'abi_version': 4,
+                'mandatory_dependencies': [],
+                'optional_dependencies' : [],
+                'libraries' : ['libninjars.a'],
+                'install_path':  '%(prefix)s/ninjars/'},
                'madanalysis5':
                {'install_mode':'Default',
                 'version':       '1.11.0',
@@ -602,6 +627,89 @@ def check_mg5_generation_support(tool, generation):
         logger.error("HEPToolsInstaller.py: %s", _HepTools[tool]['unsupported_mg5_generation_hint'])
     sys.exit(9)
 
+def find_executable(program):
+    """ Return the full path of 'program' if it is an executable path or found in PATH."""
+
+    if os.path.dirname(program):
+        return program if (os.path.isfile(program) and os.access(program, os.X_OK)) else None
+    for directory in os.environ.get('PATH', '').split(os.pathsep):
+        candidate = pjoin(directory, program)
+        if os.path.isfile(candidate) and os.access(candidate, os.X_OK):
+            return candidate
+    return None
+
+def get_program_output(command):
+    """ Return the decoded stdout+stderr of command, or None if it cannot be run."""
+
+    try:
+        p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        output, _ = p.communicate()
+    except OSError:
+        return None
+    if p.returncode != 0:
+        return None
+    return output.decode(errors='replace') if PY3 else output
+
+def check_ninjars_prerequisites():
+    """ Make sure that ninjars can be built here, before anything is downloaded or compiled.
+        Returns a list of human-readable problems (empty if everything is fine)."""
+
+    problems = []
+    fortran_compiler = _gfortran
+
+    # The bridge Makefile ('compiler-runtime' target) only supports GNU Fortran on Linux,
+    # as this is the only setup for which its compiler-runtime link order is validated.
+    if not sys.platform.startswith('linux'):
+        problems.append("ninjars is currently only supported on Linux with GNU Fortran "
+                        "(the bridge validates its compiler-runtime link order only there); "
+                        "this platform is '%s'."%sys.platform)
+    elif not find_executable(fortran_compiler):
+        problems.append("The Fortran compiler '%s' could not be found."%fortran_compiler)
+    else:
+        version = get_program_output([fortran_compiler, '--version']) or ''
+        if 'GNU Fortran' not in version.split('\n')[0]:
+            problems.append("ninjars requires GNU Fortran, but '%s --version' reports:\n      %s"%(
+                                       fortran_compiler, version.split('\n')[0] or 'nothing'))
+        machine = (get_program_output([fortran_compiler, '-dumpmachine']) or '').strip()
+        if '-linux-' not in machine:
+            problems.append("ninjars requires a Fortran compiler targeting Linux, but "
+                            "'%s -dumpmachine' reports '%s'."%(fortran_compiler, machine))
+
+    # Rust toolchain: the bridge declares rust-version in its Cargo.toml
+    min_rust = _HepTools['ninjars']['min_rust_version']
+    for program in ['cargo', 'rustc']:
+        if not find_executable(program):
+            problems.append("'%s' was not found in PATH: ninjars needs a Rust toolchain >= %s "
+                            "(see https://rustup.rs)."%(program, min_rust))
+            continue
+        version = get_program_output([program, '--version']) or ''
+        match = re.search(r'(\d+)\.(\d+)(?:\.(\d+))?', version)
+        if not match:
+            problems.append("Could not determine the version of '%s' (output: '%s')."%(
+                                                                program, version.strip()))
+        elif tuple(int(d) for d in match.groups('0')) < tuple(int(d) for d in
+                                                  (min_rust.split('.')+['0','0'])[:3]):
+            problems.append("ninjars needs Rust >= %s but '%s --version' reports '%s' "
+                            "(try 'rustup update stable')."%(min_rust, program, version.strip()))
+
+    # Other build tools: make for the bridge, a C compiler for its build.rs and for GMP/MPFR
+    # (built from source by the gmp-mpfr-sys crate, which also needs m4).
+    c_compiler = (os.environ.get('CC') or 'cc').split()[0]
+    for program in ['make', c_compiler, 'm4']:
+        if not find_executable(program):
+            problems.append("'%s' was not found in PATH, but it is needed to build ninjars."%program)
+
+    # Tarball: the official location is not decided yet.
+    if 'ninjars' not in _tarballs_specified and \
+                     'PLACEHOLDER' in str(_HepTools['ninjars']['www']):
+        problems.append("No official ninjars tarball is published yet; specify one with "
+                        "--ninjars_tarball=<path or URL to madloop-ninjars-<version>.tar.gz>.")
+
+    return problems
+
+# Checks run before anything is removed, downloaded or compiled for the given target.
+_prerequisite_checks = {'ninjars': check_ninjars_prerequisites}
+
 def get_mg5_version_key(version, n_digits=4):
     """ Turn a version into a tuple of n_digits integers usable for comparison.
         Versions which do not carry a generation prefix (typically the ones advertised
@@ -754,6 +862,17 @@ if '__main__' == __name__:
     # Refuse tools that are not supported by this generation of MadGraph
     if _mg5_generation:
         check_mg5_generation_support(target_tool, _mg5_generation)
+
+    # Refuse early (before an existing installation is removed by --force, and before
+    # anything is downloaded or compiled) if the target cannot be built on this system.
+    if target_tool in _prerequisite_checks:
+        problems = _prerequisite_checks[target_tool]()
+        if problems:
+            logger.error("HEPToolsInstaller.py: '%s' cannot be installed on this system:", target_tool)
+            for problem in problems:
+                logger.error("    - %s", problem)
+            logger.error("Nothing was downloaded, compiled or removed.")
+            sys.exit(9)
 
     # Adapt paths according to MG5 version specified
     if _mg5_version:
@@ -1088,7 +1207,162 @@ def install_ninja(tmp_path):
                     stdout=ninja_log,
                     stderr=ninja_log)
     ninja_log.close()
-    return p 
+    return p
+
+# Files that the MadLoop NinjaRS bridge installs in <install_path>/lib and that MadGraph7
+# reads through <prefix>/lib (see madgraph/various/ninjars_install.py in MadGraph7).
+_ninjars_config_name = 'ninjars-config.json'
+_ninjars_lib_files = ['libninjars.a', 'mninjars.mod', _ninjars_config_name,
+                      'ninjars-native-libs.txt', 'ninjars-link-before.txt']
+
+def file_sha256(path):
+    """ Return the hex sha256 digest of a file."""
+    import hashlib
+    digest = hashlib.sha256()
+    with open(path, 'rb') as stream:
+        for block in iter(lambda: stream.read(1 << 20), b''):
+            digest.update(block)
+    return digest.hexdigest()
+
+def cargo_lock_git_dependencies(lock_path):
+    """ List the git sources pinned in a Cargo.lock (without requiring tomllib)."""
+
+    dependencies = []
+    for block in open(lock_path).read().split('[[package]]')[1:]:
+        fields = dict(re.findall(r'^(name|version|source)\s*=\s*"([^"]*)"', block, re.M))
+        if fields.get('source', '').startswith('git+'):
+            dependencies.append({'name': fields.get('name'), 'version': fields.get('version'),
+                                 'source': fields['source']})
+    return sorted(dependencies, key=lambda item: (item['name'], item['source']))
+
+def check_ninjars_installation(libdir):
+    """ Check an installed ninjars lib directory the way MadGraph7 does (is_available and
+        read_config in madgraph/various/ninjars_install.py). Returns a list of problems."""
+    import json, shlex
+
+    problems = []
+    archive = pjoin(libdir, 'libninjars.a')
+    try:
+        with open(archive, 'rb') as stream:
+            if os.path.getsize(archive) <= 8 or stream.read(8) != b'!<arch>\n':
+                problems.append("'%s' is not a static archive."%archive)
+    except (IOError, OSError) as error:
+        problems.append("Cannot read '%s': %s"%(archive, error))
+    if not (os.path.isfile(pjoin(libdir, 'mninjars.mod')) and
+            os.path.getsize(pjoin(libdir, 'mninjars.mod'))):
+        problems.append("Missing Fortran module '%s'."%pjoin(libdir, 'mninjars.mod'))
+    try:
+        config = json.load(open(pjoin(libdir, _ninjars_config_name)))
+    except (IOError, OSError, ValueError) as error:
+        problems.append("Cannot read '%s': %s"%(pjoin(libdir, _ninjars_config_name), error))
+        return problems
+    if not isinstance(config, dict) or config.get('abi_version') != _HepTools['ninjars']['abi_version']:
+        problems.append("Unexpected bridge ABI in '%s'."%_ninjars_config_name)
+        return problems
+    if config.get('quad_precision') is not True:
+        problems.append("'quad_precision' is not enabled in '%s'."%_ninjars_config_name)
+    if config.get('link_order_version') != 1:
+        problems.append("Unexpected 'link_order_version' in '%s'."%_ninjars_config_name)
+    for key, filename, allow_empty in [('native_libs', 'ninjars-native-libs.txt', True),
+                                       ('link_before', 'ninjars-link-before.txt', False)]:
+        flags = config.get(key)
+        if not isinstance(flags, list) or (not flags and not allow_empty) or \
+           any(not isinstance(f, str) or '\n' in f or '\r' in f for f in flags):
+            problems.append("Invalid '%s' entry in '%s'."%(key, _ninjars_config_name))
+            continue
+        try:
+            if shlex.split(open(pjoin(libdir, filename)).read()) != flags:
+                problems.append("'%s' does not match '%s' in '%s'."%(filename, key, _ninjars_config_name))
+        except (IOError, OSError, ValueError) as error:
+            problems.append("Cannot read '%s': %s"%(pjoin(libdir, filename), error))
+    return problems
+
+def install_ninjars(tmp_path):
+    """Installation operations for the MadLoop NinjaRS bridge (libninjars.a)"""
+    import json, shlex
+
+    tool = _HepTools['ninjars']
+    install_path = tool['install_path']
+    tarball = tool['tarball'][1]
+    libdir = pjoin(install_path, 'lib')
+    ninjars_log = open(pjoin(install_path, "ninjars_install.log"), "w")
+    def log(message):
+        ninjars_log.write(message+'\n')
+        ninjars_log.flush()
+
+    notice = ("NOTE: the quad-precision rescue of NinjaRS relies on Symbolica, whose licence "
+              "restricts how many threads/instances may run concurrently without a Symbolica "
+              "licence. Check https://symbolica.io before running many MadLoop jobs in "
+              "parallel on one machine.")
+    logger.warning(notice)
+    log(notice)
+    log("NOTE: the NinjaRS bridge is currently only supported on Linux with GNU Fortran.")
+
+    # Check the integrity of the official tarball (a user-specified tarball is trusted)
+    tarball_sha256 = file_sha256(tarball)
+    log("Tarball '%s' has sha256 %s"%(tarball, tarball_sha256))
+    if 'ninjars' not in _tarballs_specified and tool['sha256'] and tool['sha256'] != tarball_sha256:
+        log("ERROR: sha256 mismatch, the expected value for version %s is %s."%(
+                                                                tool['version'], tool['sha256']))
+        ninjars_log.close()
+        return 1
+
+    # Keep the Cargo build cache under the HEPTools prefix (as MadGraph7 does), so that a
+    # reinstallation (--force) can reuse the compiled pinned dependencies.
+    # An explicitly selected CARGO_TARGET_DIR is honoured.
+    my_env = os.environ.copy()
+    my_env['CARGO_TARGET_DIR'] = os.path.abspath(os.path.expanduser(
+                     my_env.get('CARGO_TARGET_DIR', pjoin(_prefix, '.ninjars-build-cache'))))
+    # A global Cargo build-dir could hash the temporary source path and defeat the cache
+    my_env.setdefault('CARGO_BUILD_BUILD_DIR', pjoin(my_env['CARGO_TARGET_DIR'], 'build'))
+    my_env['FC'] = _gfortran
+
+    log("Running %s"%pjoin(_installers_path,'installNINJARS.sh'))
+    ninjars_log.flush()
+    p = subprocess.call([pjoin(_installers_path,'installNINJARS.sh'),
+                         install_path, tarball, _gfortran, tmp_path],
+                        stdout=ninjars_log, stderr=ninjars_log, env=my_env)
+    if p != 0:
+        log("ERROR: installNINJARS.sh failed with return code %s."%p)
+        ninjars_log.close()
+        return p
+
+    # Write the metadata read by MadGraph7 (read_config/is_available in
+    # madgraph/various/ninjars_install.py)
+    try:
+        native_libs = shlex.split(open(pjoin(libdir, 'ninjars-native-libs.txt')).read())
+        link_before = shlex.split(open(pjoin(libdir, 'ninjars-link-before.txt')).read())
+        config = {'abi_version': tool['abi_version'],
+                  'quad_precision': True,
+                  'native_libs': native_libs,
+                  'link_before': link_before,
+                  'link_order_version': 1,
+                  'fortran_compiler': _gfortran,
+                  'compiler_runtime': 'gnu-linux-libgcc_s-before-rust',
+                  'local_sources': {},
+                  'build_provenance': {
+                      'manifest_sha256': file_sha256(pjoin(install_path, 'Cargo.toml')),
+                      'lock_sha256': file_sha256(pjoin(install_path, 'Cargo.lock')),
+                      'git_dependencies': cargo_lock_git_dependencies(pjoin(install_path, 'Cargo.lock')),
+                      'bridge_version': tool['version'],
+                      'tarball': os.path.basename(tarball),
+                      'tarball_sha256': tarball_sha256,
+                      'installed_by': 'HEPToolsInstaller'}}
+        with open(pjoin(libdir, _ninjars_config_name), 'w') as stream:
+            stream.write(json.dumps(config, indent=2, sort_keys=True)+'\n')
+    except (IOError, OSError, ValueError) as error:
+        log("ERROR: could not write '%s': %s"%(_ninjars_config_name, error))
+        ninjars_log.close()
+        return 1
+    log("Wrote %s:\n%s"%(pjoin(libdir, _ninjars_config_name), json.dumps(config, indent=2, sort_keys=True)))
+
+    problems = check_ninjars_installation(libdir)
+    for problem in problems:
+        log("ERROR: %s"%problem)
+    if not problems:
+        log("Finished installing ninjars")
+    ninjars_log.close()
+    return 1 if problems else 0
 
 def install_lhapdf6(tmp_path):
     """Installation operations for lhapdf6"""
@@ -1600,9 +1874,15 @@ def finalize_installation(tool):
     if tool=='mg5amc_py8_interface':
         all_bin      += [pjoin(_HepTools[tool]['install_path'],'MG5aMC_PY8_interface')]
 
-    # Force static linking for pythia8/ninja
-    if tool in ['pythia8', 'ninja']:
-        if LooseVersion("5.3.5.13") <= _mg5_version < LooseVersion("5.3.6.0"):
+    # Only expose the files that MadGraph7 reads for ninjars (it is static only)
+    if tool=='ninjars':
+        all_lib = [lib for lib in all_lib if os.path.basename(lib) in _ninjars_lib_files]
+
+    # Force static linking for pythia8/ninja/ninjars
+    if tool in ['pythia8', 'ninja', 'ninjars']:
+        if tool != 'ninja':
+            dylib = 'OFF'
+        elif LooseVersion("5.3.5.13") <= _mg5_version < LooseVersion("5.3.6.0"):
             dylib = 'ON'
         elif LooseVersion("5.3.6.7") <= _mg5_version:
             dylib = 'ON'
@@ -1857,6 +2137,11 @@ def check_successful_installation(target):
     if target == 'dragon_data':
        return os.path.exists(pjoin(_HepTools[target]['install_path'],'data'))
 
+    if target == 'ninjars':
+        problems = check_ninjars_installation(pjoin(_HepTools[target]['install_path'],'lib'))
+        for problem in problems:
+            logger.warning("ninjars installation check: %s", problem)
+        return not problems
     if target == 'contur':
         return True #'You should source data/share/analysis-list' in open(pjoin(_HepTools['contur']['install_path'],'contur_install.log'),'r').read()
     for f in _HepTools[target]['libraries']:
